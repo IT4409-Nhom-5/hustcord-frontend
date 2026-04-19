@@ -1,0 +1,4 @@
+// Các custom hooks dùng chung trong app.
+// useAppDispatch: typed dispatch hook cho Redux.
+// useAppSelector: typed selector hook cho Redux.
+// Giúp TypeScript hiểu đúng kiểu dữ liệu khi dùng Redux.
