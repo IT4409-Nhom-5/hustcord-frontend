@@ -1,4 +1,15 @@
-// Component bọc toàn bộ trang sau khi đăng nhập (Page Wrapper).
-// Cung cấp layout chung: kết nối WebSocket, load dữ liệu ban đầu (guilds, user info).
-// Bọc các trang: GuildPage, OverviewPage.
-// Tương tự như "page-wrapper.tsx" trong code gốc.
+import React from 'react';
+
+interface PageWrapperProps {
+  children: React.ReactNode;
+}
+
+const PageWrapper: React.FC<PageWrapperProps> = ({ children }) => {
+  return (
+    <div className="min-h-screen w-full bg-[#313338] text-white overflow-hidden relative">
+      {children}
+    </div>
+  );
+};
+
+export default PageWrapper;

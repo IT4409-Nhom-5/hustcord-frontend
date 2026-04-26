@@ -1,4 +1,29 @@
-// Redux slice quản lý trạng thái các Guild (Server).
-// Lưu trữ: danh sách guilds, guild đang chọn, danh sách members của guild.
-// Actions: fetchGuilds, createGuild, updateGuild, deleteGuild, joinGuild, leaveGuild.
-// Tương ứng với module "channel" ở backend (mỗi guild chứa nhiều channels).
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+
+interface GuildState {
+  list: any[];
+  activeGuildId: string | null;
+  loading: boolean;
+}
+
+const initialState: GuildState = {
+  list: [],
+  activeGuildId: null,
+  loading: false,
+};
+
+const guildSlice = createSlice({
+  name: 'guilds',
+  initialState,
+  reducers: {
+    setGuilds: (state, action: PayloadAction<any[]>) => {
+      state.list = action.payload;
+    },
+    setActiveGuild: (state, action: PayloadAction<string>) => {
+      state.activeGuildId = action.payload;
+    },
+  },
+});
+
+export const { setGuilds, setActiveGuild } = guildSlice.actions;
+export default guildSlice.reducer;
