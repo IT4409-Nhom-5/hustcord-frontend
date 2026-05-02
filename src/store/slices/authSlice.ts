@@ -72,5 +72,15 @@ export const registerUser = (data: any) => async (dispatch: any) => {
     dispatch(registerFailure(err.message));
   }
 };
-
+export const loginUser = (data: any) => async (dispatch: any) => {
+  dispatch(loginStart());
+  try {
+    // Gọi API thực tế ở đây
+    console.log('Logging in user with data:', data);
+    // Tạm thời giả lập thành công
+    // dispatch(loginSuccess({ user: { username: data.username }, token: 'fake-token' }));  
+  } catch (err: any) {
+    dispatch(loginFailure(err.message));
+  }
+};
 export default authSlice.reducer;
