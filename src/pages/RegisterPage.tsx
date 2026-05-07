@@ -7,8 +7,6 @@ import type { RootState, AppDispatch } from '../store';
 import PageWrapper from '../components/layout/PageWrapper';
 import Input from '../components/ui/Input';
 
-// Lưu ý: CSS scoped có thể cần cấu hình plugin nếu bạn dùng Vite. 
-// Nếu không, bạn có thể dùng Tailwind thuần túy.
 import './RegisterPage.scoped.css';
 
 const RegisterPage: React.FC = () => {  
@@ -23,7 +21,6 @@ const RegisterPage: React.FC = () => {
     dispatch(registerUser(data));
   };
 
-  // Nếu đã đăng nhập, chuyển hướng sang trang chính
   if (user) {
     return <Navigate to="/channels/@me" />;
   }
