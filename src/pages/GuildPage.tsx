@@ -1,4 +1,17 @@
-// Trang hiển thị Guild (Server Page).
-// Hiển thị tại route "/channels/:guildId/:channelId?".
-// Bao gồm layout 3 cột: ServerSidebar | ChannelSidebar | ChatArea.
-// Load dữ liệu guild, channels, messages khi vào trang.
+import React from 'react';
+import PageWrapper from '../components/layout/PageWrapper';
+import ChatArea from '../components/channel/ChatArea';
+import MemberList from '../components/user/MemberList';
+
+const GuildPage: React.FC = () => {
+  return (
+    <PageWrapper>
+      <div className="flex h-full w-full">
+        <ChatArea />
+        <MemberList />
+      </div>
+    </PageWrapper>
+  );
+};
+
+export default GuildPage;
