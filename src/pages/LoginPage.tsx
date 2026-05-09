@@ -100,7 +100,7 @@ const LoginPage: React.FC = () => {
           </form>
         </div>
 
-        {/* Cột QR Code (Chỉ hiện trên Desktop) */}
+        {/* Cột QR Code*/}
         <div className="hidden md:flex flex-col items-center justify-center w-[240px] border-l border-[#3f4147] pl-8">
           <div className="w-44 h-44 bg-white rounded flex items-center justify-center p-2 mb-6">
             {/* Fake QR Code */}
