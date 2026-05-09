@@ -3,25 +3,28 @@ import Modal from './Modal';
 import { useAppDispatch, useAppSelector } from '../../hooks/useAppStore';
 import { channelCreated } from '../../store/slices/guildSlice';
 import { closedModal, openedModal } from '../../store/slices/uiSlice';
+import type { Channel } from '../../types';
 
 const CreateChannelModal: React.FC = () => {
   const dispatch = useAppDispatch();
   const activeGuildId = useAppSelector((state) => state.ui.activeGuildId);
   const [name, setName] = useState('');
-  const [type, setType] = useState<'text' | 'voice'>('text');
+  const [type, setType] = useState<'TEXT' | 'VOICE'>('TEXT');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !activeGuildId) return;
 
-    const formattedName = type === 'text' 
+    const formattedName = type === 'TEXT' 
       ? name.trim().toLowerCase().replace(/\s+/g, '-')
       : name.trim();
 
-    const newChannel = {
+    const newChannel: Channel = {
       id: Date.now().toString(),
       name: formattedName,
-      type: type 
+      type: type,
+      guildId: activeGuildId,
+      createdAt: new Date().toISOString()
     };
 
     dispatch(channelCreated({ guildId: activeGuildId, channel: newChannel }));
@@ -35,7 +38,7 @@ const CreateChannelModal: React.FC = () => {
           <label className="block text-xs font-bold text-[#b5bac1] uppercase mb-2">Channel Name</label>
           <div className="relative">
             <span className="absolute left-3 top-2 text-[#80848e] text-lg">
-              {type === 'text' ? '#' : (
+              {type === 'TEXT' ? '#' : (
                 <svg className="w-5 h-5 mt-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0-9 9 9 9 0 0 0 9 9 9 9 0 0 0 9-9 9 9 0 0 0-9-9Zm0 16a7 7 0 1 1 0-14 7 7 0 0 1 0 14Zm-4-7a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm8 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/></svg>
               )}
             </span>
@@ -43,7 +46,7 @@ const CreateChannelModal: React.FC = () => {
               type="text" 
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder={type === 'text' ? "new-channel" : "General Voice"}
+              placeholder={type === 'TEXT' ? "new-channel" : "General Voice"}
               className="w-full bg-[#1e1f22] text-[#dbdee1] p-2 pl-10 rounded outline-none focus:ring-1 focus:ring-[#5865f2]"
               autoFocus
             />
@@ -53,8 +56,8 @@ const CreateChannelModal: React.FC = () => {
         <div className="flex flex-col gap-2">
           <label className="block text-xs font-bold text-[#b5bac1] uppercase">Channel Type</label>
           <div 
-            onClick={() => setType('text')}
-            className={`p-3 rounded flex items-center cursor-pointer transition-colors ${type === 'text' ? 'bg-[#3f4147] text-white' : 'hover:bg-[#35373c] text-[#b5bac1]'}`}
+            onClick={() => setType('TEXT')}
+            className={`p-3 rounded flex items-center cursor-pointer transition-colors ${type === 'TEXT' ? 'bg-[#3f4147] text-white' : 'hover:bg-[#35373c] text-[#b5bac1]'}`}
           >
             <span className="text-2xl mr-3">#</span>
             <div className="flex flex-col">
@@ -63,8 +66,8 @@ const CreateChannelModal: React.FC = () => {
             </div>
           </div>
           <div 
-            onClick={() => setType('voice')}
-            className={`p-3 rounded flex items-center cursor-pointer transition-colors ${type === 'voice' ? 'bg-[#3f4147] text-white' : 'hover:bg-[#35373c] text-[#b5bac1]'}`}
+            onClick={() => setType('VOICE')}
+            className={`p-3 rounded flex items-center cursor-pointer transition-colors ${type === 'VOICE' ? 'bg-[#3f4147] text-white' : 'hover:bg-[#35373c] text-[#b5bac1]'}`}
           >
             <span className="text-2xl mr-3">🔊</span>
             <div className="flex flex-col">

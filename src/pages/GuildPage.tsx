@@ -17,7 +17,7 @@ const GuildPage: React.FC = () => {
   // Tìm channel hiện tại để biết type (text hay voice)
   const activeGuild = guilds.find(g => g.id === ui.activeGuildId);
   const activeChannel = activeGuild?.channels?.find(c => c.id === channelId);
-  const isVoiceChannel = activeChannel?.type === 'voice';
+  const isVoiceChannel = activeChannel?.type === 'VOICE';
 
   return (
     <PageWrapper pageTitle="HustCord | Server" className="h-screen flex bg-[#313338] text-white">

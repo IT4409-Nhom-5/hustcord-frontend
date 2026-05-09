@@ -1,22 +1,29 @@
 import React, { useState } from 'react';
-import { useAppDispatch } from '../../hooks/useAppStore';
+import { useAppDispatch, useAppSelector } from '../../hooks/useAppStore';
 import Modal from './Modal';
 import { created } from '../../store/slices/guildSlice';
 import { closedModal } from '../../store/slices/uiSlice';
+import type { Guild } from '../../types';
 
 const CreateGuildModal: React.FC = () => {
   const dispatch = useAppDispatch();
+  const currentUser = useAppSelector((state) => state.auth.user);
   const [name, setName] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim() || !currentUser) return;
 
-    const newGuild = {
-      id: Date.now().toString(),
+    const guildId = Date.now().toString();
+    const newGuild: Guild = {
+      id: guildId,
       name: name.trim(),
-      channels: [{ id: 'general', name: 'general', type: 'text' }],
-      members: []
+      ownerId: currentUser.id,
+      createdAt: new Date().toISOString(),
+      channels: [
+        { id: 'general', name: 'general', type: 'TEXT', guildId: guildId, createdAt: new Date().toISOString() }
+      ],
+      members: [currentUser]
     };
 
     dispatch(created({ guild: newGuild }));

@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAppSelector } from './hooks/useAppStore';
-import { JSX } from 'react';
+import type { JSX } from 'react';
 // Pages
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';

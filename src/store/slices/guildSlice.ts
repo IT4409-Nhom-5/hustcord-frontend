@@ -1,9 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import type { Guild, Channel, User } from '../../types';
 
 interface GuildState {
-  list: any[];
+  list: Guild[];
   activeGuildId: string | null;
   loading: boolean;
 }
@@ -18,47 +17,47 @@ const guildSlice = createSlice({
   name: 'guilds',
   initialState,
   reducers: {
-    setGuilds: (state, action: PayloadAction<any[]>) => {
+    setGuilds: (state, action: PayloadAction<Guild[]>) => {
       state.list = action.payload;
     },
     setActiveGuild: (state, action: PayloadAction<string>) => {
       state.activeGuildId = action.payload;
     },
-    channelCreated: (state, action) => {
-      const guild = state.list.find((g: any) => g.id === action.payload.guildId);
+    channelCreated: (state, action: PayloadAction<{ guildId: string; channel: Channel }>) => {
+      const guild = state.list.find((g) => g.id === action.payload.guildId);
       if (guild && guild.channels) {
         guild.channels.push(action.payload.channel);
       }
     },
-    channelDeleted: (state, action) => {
-      const guild = state.list.find((g: any) => g.id === action.payload.guildId);
+    channelDeleted: (state, action: PayloadAction<{ guildId: string; channelId: string }>) => {
+      const guild = state.list.find((g) => g.id === action.payload.guildId);
       if (guild && guild.channels) {
-        guild.channels = guild.channels.filter((c: any) => c.id !== action.payload.channelId);
+        guild.channels = guild.channels.filter((c) => c.id !== action.payload.channelId);
       }
     },
-    memberAdded: (state, action) => {
-      const guild = state.list.find((g: any) => g.id === action.payload.guildId);
+    memberAdded: (state, action: PayloadAction<{ guildId: string; member: User }>) => {
+      const guild = state.list.find((g) => g.id === action.payload.guildId);
       if (guild && guild.members) {
         guild.members.push(action.payload.member);
       }
     },
-    memberRemoved: (state, action) => {
-      const guild = state.list.find((g: any) => g.id === action.payload.guildId);
+    memberRemoved: (state, action: PayloadAction<{ guildId: string; memberId: string }>) => {
+      const guild = state.list.find((g) => g.id === action.payload.guildId);
       if (guild && guild.members) {
-        guild.members = guild.members.filter((m: any) => m.id !== action.payload.memberId);
+        guild.members = guild.members.filter((m) => m.id !== action.payload.memberId);
       }
     },
-    inviteCreated: (state, action) => {
+    inviteCreated: (_state, _action) => {
       // Logic for storing invites if needed
     },
-    created: (state, action) => {
+    created: (state, action: PayloadAction<{ guild: Guild }>) => {
       state.list.push(action.payload.guild);
     },
-    deleted: (state, action) => {
-      state.list = state.list.filter((g: any) => g.id !== action.payload.guildId);
+    deleted: (state, action: PayloadAction<{ guildId: string }>) => {
+      state.list = state.list.filter((g) => g.id !== action.payload.guildId);
     },
-    updated: (state, action) => {
-      const index = state.list.findIndex((g: any) => g.id === action.payload.guild.id);
+    updated: (state, action: PayloadAction<{ guild: Guild }>) => {
+      const index = state.list.findIndex((g) => g.id === action.payload.guild.id);
       if (index !== -1) {
         state.list[index] = action.payload.guild;
       }
