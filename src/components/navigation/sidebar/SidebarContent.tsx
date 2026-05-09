@@ -10,6 +10,9 @@ const SidebarContent: React.FC = () => {
   const location = useLocation();
   const isMePage = location.pathname.startsWith('/channels/@me');
   const ui = useAppSelector((state) => state.ui);
+  const guilds = useAppSelector((state) => state.guilds.list);
+  
+  const activeGuild = guilds.find((g: any) => g.id === ui.activeGuildId);
   
   // Fake data for UI preview since we don't have DMs/Channels state fully mapped yet
   const dmList = [
@@ -17,7 +20,7 @@ const SidebarContent: React.FC = () => {
     { id: '2', name: 'Clyde', status: 'idle' },
   ];
 
-  const channels = ui.activeGuild?.channels || [
+  const channels = activeGuild?.channels || [
     { id: 'general', name: 'general' },
     { id: 'voice', name: 'General Voice' },
   ];
@@ -27,7 +30,7 @@ const SidebarContent: React.FC = () => {
       {/* Header */}
       <div className="h-12 flex items-center px-4 shadow-[0_1px_2px_rgba(0,0,0,0.2)] shrink-0 hover:bg-[#3f4147] cursor-pointer transition-colors">
         <span className="font-semibold text-white truncate w-full">
-          {isMePage ? 'Start a conversation' : (ui.activeGuild?.name || 'HustCord Server')}
+          {isMePage ? 'Start a conversation' : (activeGuild?.name || 'HustCord Server')}
         </span>
       </div>
 
@@ -72,7 +75,7 @@ const SidebarContent: React.FC = () => {
             {channels.map((channel: any) => (
               <Link 
                 key={channel.id} 
-                to={`/channels/${ui.activeGuild?.id}/${channel.id}`}
+                to={`/channels/${activeGuild?.id}/${channel.id}`}
                 className="flex items-center px-2 py-1.5 rounded hover:bg-[#35373c] text-[#949ba4] hover:text-[#dbdee1] cursor-pointer"
               >
                 <svg className="w-5 h-5 mr-1.5 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M10.99 3.16A1 1 0 1 0 9 2.84L8.15 8H4a1 1 0 0 0 0 2h3.82l-.67 4H3a1 1 0 1 0 0 2h3.82l-.8 4.84a1 1 0 0 0 1.97.32L8.85 16h4.97l-.8 4.84a1 1 0 0 0 1.97.32l.86-5.16H20a1 1 0 1 0 0-2h-3.82l.67-4H21a1 1 0 1 0 0-2h-3.82l.8-4.84a1 1 0 1 0-1.97-.32L15.15 8h-4.97l.8-4.84ZM14.82 10l-.67 4H9.18l.67-4h4.97Z"/></svg>

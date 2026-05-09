@@ -16,11 +16,13 @@ const PrivateRoute = ({ children }: { children: JSX.Element }) => {
 };
 
 function App() {
+  const token = useAppSelector((state) => state.auth.token);
+  
   return (
     <Router>
       <Routes>
         {/* Public Routes */}
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={token ? <Navigate to="/channels/@me" /> : <HomePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         

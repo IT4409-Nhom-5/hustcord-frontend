@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAppDispatch, useAppSelector } from '../../../hooks/useAppStore';
 import SidebarIcon from './SidebarIcon';
-import { openedModal } from '../../../store/slices/uiSlice';
+import { openedModal, setGuild } from '../../../store/slices/uiSlice';
 
 const Sidebar: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -15,6 +15,7 @@ const Sidebar: React.FC = () => {
         to="/channels/@me" 
         name="Direct Messages" 
         imageURL="https://discord.com/assets/c40c84ca18d84633a9d86b4046a91437.svg" 
+        onClick={() => dispatch(setGuild(null))}
       />
 
       {/* Divider */}
@@ -27,6 +28,7 @@ const Sidebar: React.FC = () => {
           to={`/channels/${guild.id}`}
           name={guild.name || 'Server'}
           imageURL={guild.iconURL}
+          onClick={() => dispatch(setGuild(guild))}
         />
       ))}
 
