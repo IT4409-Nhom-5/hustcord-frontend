@@ -15,17 +15,29 @@ const ChatArea: React.FC = () => {
   const { userId } = useParams();
   const friendName = userId === '1' ? 'Wumpus' : userId === '2' ? 'Clyde' : 'Friend';
   const ui = useAppSelector((state) => state.ui);
+  const guilds = useAppSelector((state) => state.guilds.list);
+  const activeGuild = guilds.find((g: any) => g.id === ui.activeGuildId);
 
   const activeChannelName = isDM 
     ? friendName 
-    : ui.activeGuild?.channels?.find((c: any) => c.id === activeChannelId)?.name || 'general';
+    : activeGuild?.channels?.find((c: any) => c.id === activeChannelId)?.name || 'general';
   
   const messages = useAppSelector((state) => state.messages.list)
     .filter((m: any) => isDM ? m.userId === userId : m.channelId === activeChannelId);
     
+  const currentUser = useAppSelector((state) => state.auth.user);
+  
   const typingUsers = useAppSelector((state) => state.channels.typingUsers)
-    .filter((t: any) => isDM ? (t.userId === userId && !t.channelId) : t.channelId === activeChannelId)
-    .map((t: any) => t.userId);
+    .filter((t: any) => {
+      // 1. Không hiện chính mình
+      if (t.userId === currentUser?.id) return false;
+      // 2. Lọc theo kênh hoặc DM
+      return isDM ? (t.userId === userId) : t.channelId === activeChannelId;
+    })
+    .map((t: any) => {
+      if (isDM && t.userId === userId) return friendName;
+      return "Someone"; 
+    });
   
   const scrollRef = useRef<HTMLDivElement>(null);
 

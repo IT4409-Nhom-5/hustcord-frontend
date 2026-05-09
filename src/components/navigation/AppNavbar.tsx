@@ -1,14 +1,27 @@
 import React from 'react';
 import { useLocation, useParams } from 'react-router-dom';
+import { useAppDispatch } from '../../hooks/useAppStore';
+import { startCall } from '../../store/slices/uiSlice';
 
 const AppNavbar: React.FC = () => {
+  const dispatch = useAppDispatch();
   const location = useLocation();
-  const { userId } = useParams();
-  const isMePage = location.pathname.startsWith('/channels/@me');
-  const isDM = isMePage && userId;
+  
+  // Lấy userId trực tiếp từ pathname (vd: /channels/@me/1 -> userId = 1)
+  const pathParts = location.pathname.split('/');
+  const isMePage = pathParts[1] === 'channels' && pathParts[2] === '@me';
+  const userIdFromPath = pathParts[3]; 
+  
+  const isDM = isMePage && userIdFromPath;
 
   // Fake data for friend name in DM
-  const friendName = userId === '1' ? 'Wumpus' : userId === '2' ? 'Clyde' : 'Friend';
+  const friendName = userIdFromPath === '1' ? 'Wumpus' : userIdFromPath === '2' ? 'Clyde' : 'Friend';
+
+  const handleStartCall = (type: 'voice' | 'video') => {
+    if (userIdFromPath) {
+      dispatch(startCall({ userId: userIdFromPath, type }));
+    }
+  };
 
   return (
     <div className="h-12 border-b border-[#1e1f22] flex items-center justify-between px-4 bg-[#313338] shrink-0">
@@ -46,10 +59,18 @@ const AppNavbar: React.FC = () => {
         {/* Call Icons for DM */}
         {isDM && (
           <div className="flex items-center gap-4 mr-2">
-            <button className="hover:text-[#dbdee1]" title="Start Audio Call">
+            <button 
+              onClick={() => handleStartCall('voice')}
+              className="hover:text-[#dbdee1]" 
+              title="Start Audio Call"
+            >
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.15 15.15 0 0 0 6.59 6.59l2.2-2.2a1 1 0 0 1 1.02-.24 11.4 11.4 0 0 0 3.58.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1 11.4 11.4 0 0 0 .57 3.58 1 1 0 0 1-.24 1.02l-2.21 2.19Z"/></svg>
             </button>
-            <button className="hover:text-[#dbdee1]" title="Start Video Call">
+            <button 
+              onClick={() => handleStartCall('video')}
+              className="hover:text-[#dbdee1]" 
+              title="Start Video Call"
+            >
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11l-4 4Z"/></svg>
             </button>
             <button className="hover:text-[#dbdee1]" title="Pinned Messages">

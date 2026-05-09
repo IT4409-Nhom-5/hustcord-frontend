@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import Modal from './Modal';
 import { useAppDispatch, useAppSelector } from '../../hooks/useAppStore';
 import { channelCreated } from '../../store/slices/guildSlice';
-import { closedModal } from '../../store/slices/uiSlice';
+import { closedModal, openedModal } from '../../store/slices/uiSlice';
 
 const CreateChannelModal: React.FC = () => {
   const dispatch = useAppDispatch();
-  const activeGuildId = useAppSelector((state) => state.ui.activeGuild?.id);
+  const activeGuildId = useAppSelector((state) => state.ui.activeGuildId);
   const [name, setName] = useState('');
   const [type, setType] = useState<'text' | 'voice'>('text');
 
@@ -14,10 +14,14 @@ const CreateChannelModal: React.FC = () => {
     e.preventDefault();
     if (!name.trim() || !activeGuildId) return;
 
+    const formattedName = type === 'text' 
+      ? name.trim().toLowerCase().replace(/\s+/g, '-')
+      : name.trim();
+
     const newChannel = {
       id: Date.now().toString(),
-      name: name.trim().toLowerCase().replace(/\s+/g, '-'),
-      type
+      name: formattedName,
+      type: type 
     };
 
     dispatch(channelCreated({ guildId: activeGuildId, channel: newChannel }));
@@ -30,13 +34,17 @@ const CreateChannelModal: React.FC = () => {
         <div>
           <label className="block text-xs font-bold text-[#b5bac1] uppercase mb-2">Channel Name</label>
           <div className="relative">
-            <span className="absolute left-3 top-2.5 text-[#80848e] text-xl">#</span>
+            <span className="absolute left-3 top-2 text-[#80848e] text-lg">
+              {type === 'text' ? '#' : (
+                <svg className="w-5 h-5 mt-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0-9 9 9 9 0 0 0 9 9 9 9 0 0 0 9-9 9 9 0 0 0-9-9Zm0 16a7 7 0 1 1 0-14 7 7 0 0 1 0 14Zm-4-7a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm8 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/></svg>
+              )}
+            </span>
             <input 
               type="text" 
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="new-channel"
-              className="w-full bg-[#1e1f22] text-[#dbdee1] p-2 pl-8 rounded outline-none focus:ring-1 focus:ring-[#5865f2]"
+              placeholder={type === 'text' ? "new-channel" : "General Voice"}
+              className="w-full bg-[#1e1f22] text-[#dbdee1] p-2 pl-10 rounded outline-none focus:ring-1 focus:ring-[#5865f2]"
               autoFocus
             />
           </div>

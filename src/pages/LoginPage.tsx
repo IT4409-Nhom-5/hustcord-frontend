@@ -41,7 +41,7 @@ const LoginPage: React.FC = () => {
 
   // Nếu đã đăng nhập, chuyển hướng sang trang chính
   if (user) {
-    return <Navigate to="/channels/1/1" />; // Chuyển tạm vào kênh 1/1
+    return <Navigate to="/channels/@me" />; 
   }
 
   return (
