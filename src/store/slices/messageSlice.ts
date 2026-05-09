@@ -27,13 +27,13 @@ const messageSlice = createSlice({
 export const { messageCreated, messageDeleted, messageUpdated } = messageSlice.actions;
 
 // Async actions
-export const createMessage = (channelId: string, payload: any) => async (dispatch: any, getState: any) => {
-  // In Phase 5, since API is not ready, we simulate adding a message to Redux directly
+export const createMessage = (targetId: string, payload: any, isDM: boolean = false) => async (dispatch: any, getState: any) => {
   const user = getState().auth.user || { id: 'user-1', username: 'Guest' };
   
   const newMessage = {
     id: Date.now().toString(),
-    channelId,
+    channelId: isDM ? undefined : targetId,
+    userId: isDM ? targetId : undefined, // Đối với DM, userId là ID của người nhận
     content: payload.content,
     author: user,
     createdAt: new Date().toISOString(),
@@ -41,10 +41,13 @@ export const createMessage = (channelId: string, payload: any) => async (dispatc
 
   dispatch(messageCreated(newMessage));
   
-  // Here we would emit to WS:
   import('../../services/ws').then((module) => {
     if (module.default.connected) {
-      module.default.emit('MESSAGE_CREATE', { channelId, message: newMessage });
+      const eventName = isDM ? 'DM_CREATE' : 'MESSAGE_CREATE';
+      module.default.emit(eventName, { 
+        [isDM ? 'userId' : 'channelId']: targetId, 
+        message: newMessage 
+      });
     }
   });
 };

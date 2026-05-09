@@ -26,7 +26,7 @@ function App() {
         
         {/* Private Routes */}
         <Route 
-          path="/channels/@me" 
+          path="/channels/@me/:userId?" 
           element={
             <PrivateRoute>
               <OverviewPage />

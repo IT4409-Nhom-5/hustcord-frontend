@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
+import { useLocation, useParams } from 'react-router-dom';
 import TextareaAutosize from 'react-textarea-autosize';
 import { createMessage } from '../../store/slices/messageSlice';
 import { startTyping } from '../../store/slices/channelSlice';
@@ -12,11 +13,19 @@ interface MessageBoxProps {
 
 const MessageBox: React.FC<MessageBoxProps> = ({ channelId, channelName, typingUsers = [] }) => {
   const dispatch = useDispatch();
+  const location = useLocation();
+  const { userId } = useParams();
   const [content, setContent] = useState('');
 
+  const isDM = location.pathname.startsWith('/channels/@me');
+  const targetId = isDM ? userId : channelId;
+  const placeholderName = isDM ? `@${channelName}` : `#${channelName || 'channel'}`;
+
   const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (!targetId) return;
+
     // Start typing indicator
-    dispatch(startTyping(channelId) as any);
+    dispatch(startTyping(targetId) as any);
     
     // Allow new line with Shift+Enter
     if (event.key === 'Enter' && !event.shiftKey) {
@@ -27,7 +36,7 @@ const MessageBox: React.FC<MessageBoxProps> = ({ channelId, channelName, typingU
     if (event.key !== 'Enter' || event.shiftKey || !emptyMessage) return;
     
     // Send message
-    dispatch(createMessage(channelId, { content: content.trim() }) as any);
+    dispatch(createMessage(targetId, { content: content.trim() }, isDM) as any);
     setContent('');
   };
 
@@ -55,7 +64,7 @@ const MessageBox: React.FC<MessageBoxProps> = ({ channelId, channelName, typingU
           value={content}
           minRows={1}
           maxRows={10}
-          placeholder={`Message #${channelName || 'channel'}`}
+          placeholder={`Message ${placeholderName}`}
           className="flex-1 bg-transparent py-[11px] outline-none text-[#dbdee1] placeholder-[#80848e] resize-none"
           autoFocus 
         />

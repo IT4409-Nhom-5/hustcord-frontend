@@ -27,7 +27,7 @@ const SidebarContent: React.FC = () => {
       {/* Header */}
       <div className="h-12 flex items-center px-4 shadow-[0_1px_2px_rgba(0,0,0,0.2)] shrink-0 hover:bg-[#3f4147] cursor-pointer transition-colors">
         <span className="font-semibold text-white truncate w-full">
-          {isMePage ? 'Find or start a conversation' : (ui.activeGuild?.name || 'HustCord Server')}
+          {isMePage ? 'Start a conversation' : (ui.activeGuild?.name || 'HustCord Server')}
         </span>
       </div>
 
@@ -45,12 +45,16 @@ const SidebarContent: React.FC = () => {
               <span className="pr-1 opacity-0 group-hover:opacity-100">+</span>
             </div>
             {dmList.map(dm => (
-              <div key={dm.id} className="flex items-center px-2 py-1.5 rounded hover:bg-[#35373c] text-[#949ba4] hover:text-[#dbdee1] cursor-pointer group">
+              <Link 
+                key={dm.id} 
+                to={`/channels/@me/${dm.id}`}
+                className={`flex items-center px-2 py-1.5 rounded hover:bg-[#35373c] text-[#949ba4] hover:text-[#dbdee1] cursor-pointer group ${location.pathname === `/channels/@me/${dm.id}` ? 'bg-[#3f4147] text-white' : ''}`}
+              >
                 <div className="w-8 h-8 rounded-full bg-gray-500 mr-3 relative shrink-0">
                   <div className={`absolute bottom-0 right-0 w-3 h-3 border-2 border-[#2b2d31] rounded-full group-hover:border-[#35373c] ${dm.status === 'online' ? 'bg-[#23a559]' : 'bg-[#f0b232]'}`}></div>
                 </div>
                 <span className="font-medium truncate">{dm.name}</span>
-              </div>
+              </Link>
             ))}
           </div>
         ) : (
