@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
 interface AuthState {
@@ -51,13 +53,22 @@ const authSlice = createSlice({
       state.loading = false;
       state.error = action.payload;
     },
+    ready: (state, action: PayloadAction<any>) => {
+      state.user = action.payload.user;
+    },
+    updatedUser: (state, action: PayloadAction<any>) => {
+      if (state.user) {
+        Object.assign(state.user, action.payload.payload);
+      }
+    },
   },
 });
 
 export const { 
   loginStart, loginSuccess, loginFailure, 
   logout, 
-  registerStart, registerSuccess, registerFailure 
+  registerStart, registerSuccess, registerFailure,
+  ready, updatedUser
 } = authSlice.actions;
 
 // Giả lập async actions cho register

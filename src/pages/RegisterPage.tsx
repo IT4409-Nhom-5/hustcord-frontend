@@ -1,20 +1,19 @@
 import React from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { useDispatch, useSelector } from 'react-redux';
+import { useAppDispatch, useAppSelector } from '../hooks/useAppStore';
 import { registerUser } from '../store/slices/authSlice';
-import type { RootState, AppDispatch } from '../store';
 import PageWrapper from '../components/layout/PageWrapper';
 import Input from '../components/ui/Input';
 
 import './RegisterPage.scoped.css';
 
 const RegisterPage: React.FC = () => {  
-  const user = useSelector((state: RootState) => state.auth.user);
-  const loading = useSelector((state: RootState) => state.auth.loading);
-  const error = useSelector((state: RootState) => state.auth.error);
+  const user = useAppSelector((state) => state.auth.user);
+  const loading = useAppSelector((state) => state.auth.loading);
+  const error = useAppSelector((state) => state.auth.error);
   
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
   const { register, handleSubmit } = useForm();
 
   const onSubmit = (data: any) => {

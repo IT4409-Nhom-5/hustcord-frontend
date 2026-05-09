@@ -1,25 +1,31 @@
 import React from 'react';
 import PageWrapper from '../components/layout/PageWrapper';
-import ServerSidebar from '../components/layout/ServerSidebar';
-import ChannelSidebar from '../components/layout/ChannelSidebar';
+import Sidebar from '../components/navigation/sidebar/Sidebar';
+import SidebarContent from '../components/navigation/sidebar/SidebarContent';
+import AppNavbar from '../components/navigation/AppNavbar';
 import ChatArea from '../components/channel/ChatArea';
+import MemberList from '../components/navigation/sidebar/MemberList';
 
 const GuildPage: React.FC = () => {
   return (
-    <PageWrapper>
-      <div className="flex h-screen w-full bg-[#313338] text-[#dbdee1] overflow-hidden font-sans">
+    <PageWrapper pageTitle="HustCord | Server" className="h-screen flex bg-[#313338] text-white">
+      {/* 1. Far Left: Server Icons */}
+      <Sidebar />
+      
+      {/* 2. Middle Left: Channel List */}
+      <SidebarContent />
+      
+      {/* 3. Right: Main Content Area */}
+      <div className="flex-1 flex flex-col bg-[#313338] min-w-0">
+        <AppNavbar />
         
-        {/* 1. Server List*/}
-        <ServerSidebar />
-
-        {/* 2. Navigation Sidebar */}
-        <ChannelSidebar />
-
-        {/* 3. Chat Window */}
-        <ChatArea />
-
-        {/* 4. MemberList */}
-
+        <div className="flex-1 flex">
+          {/* Main Chat Window */}
+          <ChatArea />
+          
+          {/* Member List */}
+          <MemberList />
+        </div>
       </div>
     </PageWrapper>
   );

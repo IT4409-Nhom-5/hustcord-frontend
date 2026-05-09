@@ -1,13 +1,26 @@
-import React from 'react';
+import React, { type ReactNode } from 'react';
+import { useAppSelector } from '../../hooks/useAppStore';
+import WSListener from '../WSListener';
+import CreateGuildModal from '../modals/CreateGuildModal';
+import CreateChannelModal from '../modals/CreateChannelModal';
 
-interface PageWrapperProps {
-  children: React.ReactNode;
+export interface PageWrapperProps extends React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement> {
+  pageTitle?: string;
+  children: ReactNode;
 }
 
-const PageWrapper: React.FC<PageWrapperProps> = ({ children }) => {
+const PageWrapper: React.FC<PageWrapperProps> = ({ pageTitle = 'HustCord', children, className, ...rest }) => {
+  const activeModal = useAppSelector((state) => state.ui.activeModal);
+  
   return (
-    <div className="min-h-screen w-full bg-[#313338] text-white overflow-hidden relative">
+    <div className={`page-wrapper h-screen w-full overflow-hidden ${className || ''}`} {...rest}>
       {children}
+      
+      <WSListener />
+
+      {/* Global Modals */}
+      {activeModal === 'CREATE_GUILD' && <CreateGuildModal />}
+      {activeModal === 'CREATE_CHANNEL' && <CreateChannelModal />}
     </div>
   );
 };

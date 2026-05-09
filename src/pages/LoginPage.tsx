@@ -1,19 +1,18 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { useDispatch, useSelector } from 'react-redux';
-import { loginStart, loginSuccess, loginFailure } from '../store/slices/authSlice';
-import type { RootState, AppDispatch } from '../store';
+import { useAppDispatch, useAppSelector } from '../hooks/useAppStore';
 import Input from '../components/ui/Input';
-import axios from 'axios';
+import { loginStart, loginSuccess, loginFailure } from '../store/slices/authSlice';
 
 // Giả lập background image bằng css pattern hoặc solid color
 const LoginPage: React.FC = () => {
-  const user = useSelector((state: RootState) => state.auth.user);
-  const loading = useSelector((state: RootState) => state.auth.loading);
-  const error = useSelector((state: RootState) => state.auth.error);
+  const user = useAppSelector((state) => state.auth.user);
+  const loading = useAppSelector((state) => state.auth.loading);
+  const error = useAppSelector((state) => state.auth.error);
   
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
   const { register, handleSubmit } = useForm();
 
   // Đây là logic login THẬT (có thể chưa chạy được ngay nếu Backend chưa cấu hình xong CORS hoàn toàn, nhưng cấu trúc thì đúng)

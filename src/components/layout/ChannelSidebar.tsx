@@ -1,6 +1,5 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
-import type { RootState } from '../../store';
+import { useAppSelector } from '../../hooks/useAppStore';
 
 interface ChannelItemProps {
   name: string;
@@ -31,7 +30,7 @@ const ChannelItem: React.FC<ChannelItemProps> = ({ name, active, type = 'text' }
 );
 
 const UserPanel: React.FC = () => {
-  const user = useSelector((state: RootState) => state.auth.user);
+  const user = useAppSelector((state) => state.auth.user);
   
   return (
     <section className="h-[52px] bg-[#232428] px-2 flex items-center justify-between shrink-0">

@@ -1,16 +1,17 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import type { RootState } from './store';
+import { useAppSelector } from './hooks/useAppStore';
 import { JSX } from 'react';
 // Pages
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import GuildPage from './pages/GuildPage';
+import NotFoundPage from './pages/NotFoundPage';
+import OverviewPage from './pages/OverviewPage';
 
 // Private Route Guard
 const PrivateRoute = ({ children }: { children: JSX.Element }) => {
-  const token = useSelector((state: RootState) => state.auth.token);
+  const token = useAppSelector((state) => state.auth.token);
   return token ? children : <Navigate to="/login" />;
 };
 
@@ -25,6 +26,14 @@ function App() {
         
         {/* Private Routes */}
         <Route 
+          path="/channels/@me" 
+          element={
+            <PrivateRoute>
+              <OverviewPage />
+            </PrivateRoute>
+          } 
+        />
+        <Route 
           path="/channels/:guildId/:channelId?" 
           element={
             <PrivateRoute>
@@ -34,7 +43,7 @@ function App() {
         />
 
         {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Router>
   );

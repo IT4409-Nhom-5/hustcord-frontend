@@ -1,30 +1,43 @@
 import React from 'react';
 
 interface MessageProps {
-  author: string;
-  time: string;
-  content: string;
-  avatarColor?: string;
+  message: {
+    id: string;
+    content: string;
+    author: {
+      username: string;
+      avatarURL?: string;
+    };
+    createdAt: string;
+  };
 }
 
-const Message: React.FC<MessageProps> = ({ author, time, content, avatarColor = 'bg-indigo-500' }) => {
+const Message: React.FC<MessageProps> = ({ message }) => {
+  const time = new Date(message.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  
   return (
     <div className="flex mt-[17px] hover:bg-[#2e3035] p-1 -mx-4 px-4 transition-colors group relative">
       {/* Avatar */}
-      <div className={`w-10 h-10 ${avatarColor} rounded-full flex-shrink-0 mt-0.5 cursor-pointer hover:shadow-lg transition-all`} />
+      <div className="w-10 h-10 rounded-full flex-shrink-0 mt-0.5 cursor-pointer hover:shadow-lg transition-all overflow-hidden bg-[#5865f2] flex items-center justify-center text-white font-bold">
+        {message.author.avatarURL ? (
+          <img src={message.author.avatarURL} alt="Avatar" className="w-full h-full object-cover" />
+        ) : (
+          message.author.username.charAt(0).toUpperCase()
+        )}
+      </div>
       
       {/* Nội dung tin nhắn */}
       <div className="ml-4 flex-1">
         <div className="flex items-baseline">
           <span className="font-medium text-white mr-2 hover:underline cursor-pointer">
-            {author}
+            {message.author.username}
           </span>
           <span className="text-[11px] font-medium text-[#80848e]">
             {time}
           </span>
         </div>
         <div className="text-[#dbdee1] mt-0.5 leading-normal whitespace-pre-wrap break-words">
-          {content}
+          {message.content}
         </div>
       </div>
 
