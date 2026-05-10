@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import { useAppDispatch, useAppSelector } from '../hooks/useAppStore';
 import Input from '../components/ui/Input';
 import { loginStart, loginSuccess, loginFailure } from '../store/slices/authSlice';
+import api from '../services/api';
 
 // Giả lập background image bằng css pattern hoặc solid color
 const LoginPage: React.FC = () => {
@@ -19,23 +20,16 @@ const LoginPage: React.FC = () => {
   const onSubmit = async (data: any) => {
     dispatch(loginStart());
     try {
-      // Giả lập call API, sau này thay bằng: 
-      // const response = await axios.post('http://localhost:3000/auth/login', data);
-      
-      // Tạm thời giả lập thành công để test UI
-      setTimeout(() => {
-        if(data.email && data.password) {
-            dispatch(loginSuccess({ 
-                user: { username: data.email.split('@')[0], email: data.email }, 
-                token: 'fake-jwt-token' 
-            }));
-        } else {
-            dispatch(loginFailure('Invalid email or password'));
-        }
-      }, 1000);
-      
+      const response = await api.post('/auth/login', {
+        email: data.email,
+        password: data.password,
+      });
+      dispatch(loginSuccess({ 
+        user: response.data.user, 
+        token: response.data.access_token 
+      }));
     } catch (err: any) {
-      dispatch(loginFailure(err.response?.data?.message || 'Login failed'));
+      dispatch(loginFailure(err.response?.data?.message || 'Invalid email or password'));
     }
   };
 

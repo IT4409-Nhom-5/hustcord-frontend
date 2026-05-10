@@ -2,9 +2,10 @@ import React from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useAppDispatch, useAppSelector } from '../hooks/useAppStore';
-import { registerUser } from '../store/slices/authSlice';
+import { registerStart, registerSuccess, registerFailure } from '../store/slices/authSlice';
 import PageWrapper from '../components/layout/PageWrapper';
 import Input from '../components/ui/Input';
+import api from '../services/api';
 
 import './RegisterPage.scoped.css';
 
@@ -16,8 +17,21 @@ const RegisterPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const { register, handleSubmit } = useForm();
 
-  const onSubmit = (data: any) => {
-    dispatch(registerUser(data));
+  const onSubmit = async (data: any) => {
+    dispatch(registerStart());
+    try {
+      const response = await api.post('/auth/register', {
+        email: data.email,
+        username: data.username,
+        password: data.password,
+      });
+      dispatch(registerSuccess({
+        user: response.data.user,
+        token: response.data.access_token,
+      }));
+    } catch (err: any) {
+      dispatch(registerFailure(err.response?.data?.message || 'Registration failed'));
+    }
   };
 
   if (user) {
