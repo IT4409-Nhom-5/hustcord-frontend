@@ -9,8 +9,8 @@ const SidebarFooter: React.FC = () => {
       {/* User Profile Area */}
       <div className="flex items-center hover:bg-[#3f4147] px-1 py-1 rounded cursor-pointer flex-1 transition-colors group">
         <div className="w-8 h-8 rounded-full bg-[#5865f2] relative overflow-hidden shrink-0">
-          {user?.avatarURL ? (
-            <img src={user.avatarURL} alt="Avatar" className="w-full h-full object-cover" />
+          {user?.avatar ? (
+            <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full flex items-center justify-center text-white font-medium">
               {user?.username?.charAt(0) || 'U'}

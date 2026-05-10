@@ -29,19 +29,19 @@ const SidebarIcon: React.FC<SidebarIconProps> = ({ to, imageURL, name, isAction,
 
   // Pill indicator on the left
   const indicatorClass = `
-    absolute -left-3 w-2 bg-white rounded-r-md transition-all duration-200
+    absolute left-0 w-2 bg-white rounded-r-md transition-all duration-200
     ${isActive ? 'h-10 opacity-100' : 'h-5 opacity-0 group-hover:opacity-100'}
   `;
 
   const Inner = () => (
-    <div className="relative w-full h-full" onClick={onClick}>
+    <div className="relative w-full" onClick={onClick}>
       <div className={indicatorClass} />
       <div className={wrapperClass}>
         {content}
       </div>
       
       {/* Tooltip */}
-      <div className="absolute left-16 top-3 bg-[#111214] text-[#dbdee1] text-sm font-semibold px-3 py-1.5 rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50">
+      <div className="absolute left-[76px] top-1/2 -translate-y-1/2 bg-[#111214] text-[#dbdee1] text-sm font-semibold px-3 py-1.5 rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50 pointer-events-none">
         {name}
         {/* Tooltip arrow */}
         <div className="absolute top-1/2 -left-1 -translate-y-1/2 border-4 border-transparent border-r-[#111214]"></div>

@@ -1,8 +1,14 @@
 import React, { useState } from 'react';
-import { useAppSelector } from '../../hooks/useAppStore';
+import { useNavigate } from 'react-router-dom';
+import { useAppSelector, useAppDispatch } from '../../hooks/useAppStore';
+import { leaveVoiceChannel } from '../../store/slices/uiSlice';
+import type { Channel } from '../../types';
 
 const VoiceCallArea: React.FC = () => {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const ui = useAppSelector((state) => state.ui);
+  const guilds = useAppSelector((state) => state.guilds.list); // Lấy danh sách guilds
   const activeVoiceChannel = ui.activeVoiceChannel;
   const [isCameraOn, setIsCameraOn] = useState(false);
 
@@ -12,6 +18,23 @@ const VoiceCallArea: React.FC = () => {
     { id: '1', name: 'Wumpus', color: 'bg-gray-500', isSpeaking: true },
     { id: '2', name: 'Clyde', color: 'bg-indigo-600', isSpeaking: false },
   ];
+
+  const handleLeaveVoice = () => {
+    if (activeVoiceChannel) {
+      dispatch(leaveVoiceChannel());
+      
+      const guildId = activeVoiceChannel.guildId;
+      const currentGuild = guilds.find(g => g.id === guildId);
+      
+      // Tìm kênh văn bản đầu tiên trong guild đó để điều hướng về
+      const firstTextChannel = currentGuild?.channels?.find((c: Channel) => c.type === 'TEXT');
+      if (firstTextChannel) {
+        navigate(`/channels/${guildId}/${firstTextChannel.id}`);
+      } else {
+        navigate(`/channels/${guildId}`); // Fallback nếu không tìm thấy kênh văn bản nào
+      }
+    }
+  };
 
   return (
     <div className="flex-1 flex flex-col bg-[#1e1f22] relative overflow-hidden">
@@ -63,7 +86,10 @@ const VoiceCallArea: React.FC = () => {
         <button className="w-14 h-14 rounded-full bg-[#313338] text-[#dbdee1] flex items-center justify-center hover:bg-[#3f4147] transition-colors">
           <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 1.99-.9 1.99-2L23 5c0-1.1-.9-2-2-2Zm0 14H3V5h18v12Z"/></svg>
         </button>
-        <button className="w-14 h-14 rounded-full bg-[#da373c] text-white flex items-center justify-center hover:bg-[#a1282b] transition-colors">
+        <button 
+          onClick={handleLeaveVoice}
+          className="w-14 h-14 rounded-full bg-[#da373c] text-white flex items-center justify-center hover:bg-[#a1282b] transition-colors"
+        >
           <svg className="w-7 h-7" fill="currentColor" viewBox="0 0 24 24"><path d="M18.41 5.41 17 4l-5 5-5-5L5.41 5.41 10.59 10.59 5.41 15.76 7 17.17l5-5 5 5 1.41-1.41L13.41 10.59 18.41 5.41Z"/></svg>
         </button>
       </div>

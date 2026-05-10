@@ -1,9 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import type { User } from '../../types';
 
 interface AuthState {
-  user: any | null;
+  user: User | null;
   token: string | null;
   loading: boolean;
   error: string | null;
@@ -24,7 +23,7 @@ const authSlice = createSlice({
       state.loading = true;
       state.error = null;
     },
-    loginSuccess: (state, action: PayloadAction<{ user: any; token: string }>) => {
+    loginSuccess: (state, action: PayloadAction<{ user: User; token: string }>) => {
       state.loading = false;
       state.user = action.payload.user;
       state.token = action.payload.token;
@@ -43,7 +42,7 @@ const authSlice = createSlice({
       state.loading = true;
       state.error = null;
     },
-    registerSuccess: (state, action: PayloadAction<{ user: any; token: string }>) => {
+    registerSuccess: (state, action: PayloadAction<{ user: User; token: string }>) => {
       state.loading = false;
       state.user = action.payload.user;
       state.token = action.payload.token;
@@ -53,12 +52,12 @@ const authSlice = createSlice({
       state.loading = false;
       state.error = action.payload;
     },
-    ready: (state, action: PayloadAction<any>) => {
+    ready: (state, action: PayloadAction<{ user: User }>) => {
       state.user = action.payload.user;
     },
-    updatedUser: (state, action: PayloadAction<any>) => {
+    updatedUser: (state, action: PayloadAction<Partial<User>>) => {
       if (state.user) {
-        Object.assign(state.user, action.payload.payload);
+        Object.assign(state.user, action.payload);
       }
     },
   },

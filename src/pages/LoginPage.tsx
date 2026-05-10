@@ -26,7 +26,12 @@ const LoginPage: React.FC = () => {
       setTimeout(() => {
         if(data.email && data.password) {
             dispatch(loginSuccess({ 
-                user: { username: data.email.split('@')[0], email: data.email }, 
+                user: { 
+                    id: 'user-' + Date.now(), 
+                    username: data.email.split('@')[0], 
+                    email: data.email,
+                    createdAt: new Date().toISOString()
+                }, 
                 token: 'fake-jwt-token' 
             }));
         } else {

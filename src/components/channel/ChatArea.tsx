@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useRef } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { useAppSelector } from '../../hooks/useAppStore';
@@ -6,7 +5,8 @@ import Message from './Message';
 import MessageBox from './MessageBox';
 
 const ChatArea: React.FC = () => {
-  const { channelId } = useParams();
+  const { guildId, channelId } = useParams();
+  const location = useLocation();
   
   // Use "general" if no channel ID is in the URL yet
   const activeChannelId = channelId || 'general';
@@ -14,27 +14,27 @@ const ChatArea: React.FC = () => {
   const isDM = location.pathname.startsWith('/channels/@me');
   const { userId } = useParams();
   const friendName = userId === '1' ? 'Wumpus' : userId === '2' ? 'Clyde' : 'Friend';
-  const ui = useAppSelector((state) => state.ui);
   const guilds = useAppSelector((state) => state.guilds.list);
-  const activeGuild = guilds.find((g: any) => g.id === ui.activeGuildId);
+  const activeGuildId = guildId || useAppSelector((state) => state.ui.activeGuildId);
+  const activeGuild = guilds.find((g) => g.id === activeGuildId);
 
   const activeChannelName = isDM 
     ? friendName 
-    : activeGuild?.channels?.find((c: any) => c.id === activeChannelId)?.name || 'general';
+    : activeGuild?.channels?.find((c) => c.id === activeChannelId)?.name || 'general';
   
   const messages = useAppSelector((state) => state.messages.list)
-    .filter((m: any) => isDM ? m.userId === userId : m.channelId === activeChannelId);
+    .filter((m) => isDM ? m.userId === userId : m.channelId === activeChannelId);
     
   const currentUser = useAppSelector((state) => state.auth.user);
   
   const typingUsers = useAppSelector((state) => state.channels.typingUsers)
-    .filter((t: any) => {
+    .filter((t) => {
       // 1. Không hiện chính mình
       if (t.userId === currentUser?.id) return false;
       // 2. Lọc theo kênh hoặc DM
       return isDM ? (t.userId === userId) : t.channelId === activeChannelId;
     })
-    .map((t: any) => {
+    .map((t) => {
       if (isDM && t.userId === userId) return friendName;
       return "Someone"; 
     });
@@ -74,7 +74,7 @@ const ChatArea: React.FC = () => {
         <div className="border-t border-[#3f4147] my-4" />
 
         {/* Render messages */}
-        {messages.map((m: any) => (
+        {messages.map((m) => (
           <Message key={m.id} message={m} />
         ))}
       </div>

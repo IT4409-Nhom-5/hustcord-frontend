@@ -1,15 +1,8 @@
 import React from 'react';
+import type { Message as MessageType } from '../../types';
 
 interface MessageProps {
-  message: {
-    id: string;
-    content: string;
-    author: {
-      username: string;
-      avatarURL?: string;
-    };
-    createdAt: string;
-  };
+  message: MessageType;
 }
 
 const Message: React.FC<MessageProps> = ({ message }) => {
@@ -19,10 +12,10 @@ const Message: React.FC<MessageProps> = ({ message }) => {
     <div className="flex mt-[17px] hover:bg-[#2e3035] p-1 -mx-4 px-4 transition-colors group relative">
       {/* Avatar */}
       <div className="w-10 h-10 rounded-full flex-shrink-0 mt-0.5 cursor-pointer hover:shadow-lg transition-all overflow-hidden bg-[#5865f2] flex items-center justify-center text-white font-bold">
-        {message.author.avatarURL ? (
-          <img src={message.author.avatarURL} alt="Avatar" className="w-full h-full object-cover" />
+        {message.author?.avatar ? (
+          <img src={message.author.avatar} alt="Avatar" className="w-full h-full object-cover" />
         ) : (
-          message.author.username.charAt(0).toUpperCase()
+          (message.author?.username || '?').charAt(0).toUpperCase()
         )}
       </div>
       
@@ -30,7 +23,7 @@ const Message: React.FC<MessageProps> = ({ message }) => {
       <div className="ml-4 flex-1">
         <div className="flex items-baseline">
           <span className="font-medium text-white mr-2 hover:underline cursor-pointer">
-            {message.author.username}
+            {message.author?.username || 'Unknown User'}
           </span>
           <span className="text-[11px] font-medium text-[#80848e]">
             {time}

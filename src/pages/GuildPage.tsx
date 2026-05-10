@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { useAppSelector } from '../hooks/useAppStore';
+import { useAppDispatch, useAppSelector } from '../hooks/useAppStore';
+import { setActiveGuild } from '../store/slices/guildSlice';
 import PageWrapper from '../components/layout/PageWrapper';
 import Sidebar from '../components/navigation/sidebar/Sidebar';
 import ChannelSidebar from '../components/layout/ChannelSidebar';
@@ -10,12 +11,19 @@ import VoiceCallArea from '../components/channel/VoiceCallArea';
 import MemberList from '../components/navigation/sidebar/MemberList';
 
 const GuildPage: React.FC = () => {
-  const { channelId } = useParams();
-  const ui = useAppSelector((state) => state.ui);
+  const { guildId, channelId } = useParams();
+  const dispatch = useAppDispatch();
   const guilds = useAppSelector((state) => state.guilds.list);
   
+  // Cập nhật guild đang hoạt động vào store khi URL thay đổi
+  useEffect(() => {
+    if (guildId) {
+      dispatch(setActiveGuild(guildId));
+    }
+  }, [guildId, dispatch]);
+
   // Tìm channel hiện tại để biết type (text hay voice)
-  const activeGuild = guilds.find(g => g.id === ui.activeGuildId);
+  const activeGuild = guilds.find(g => g.id === guildId);
   const activeChannel = activeGuild?.channels?.find(c => c.id === channelId);
   const isVoiceChannel = activeChannel?.type === 'VOICE';
 
