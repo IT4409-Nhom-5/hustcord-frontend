@@ -18,7 +18,7 @@ const OverviewPage: React.FC = () => {
       <ChannelSidebar />
       
       {/* 3. Right: Main Content Area */}
-      <div className="flex-1 flex flex-col bg-[#313338] min-w-0">
+      <div className="flex-1 flex flex-col bg-[#313338] min-w-0 min-h-0">
         <AppNavbar />
         
         {userId ? (

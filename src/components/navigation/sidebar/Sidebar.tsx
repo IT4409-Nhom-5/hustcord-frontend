@@ -10,7 +10,7 @@ const Sidebar: React.FC = () => {
   const guilds = useAppSelector((state) => state.guilds.list);
 
   return (
-    <div className="w-[72px] h-screen bg-[#1e1f22] flex flex-col items-center py-3 overflow-y-auto overflow-x-hidden hide-scrollbar z-50 shrink-0">
+    <div className="w-[72px] h-screen bg-[#1e1f22] flex flex-col items-center py-3 z-50 shrink-0">
       {/* Home / Direct Messages Button */}
       <SidebarIcon 
         to="/channels/@me" 

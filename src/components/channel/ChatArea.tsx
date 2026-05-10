@@ -49,7 +49,7 @@ const ChatArea: React.FC = () => {
   }, [messages.length]);
 
   return (
-    <main className="flex-1 flex flex-col min-w-0 bg-[#313338]">
+    <main className="flex-1 flex flex-col min-w-0 min-h-0 bg-[#313338]">
       {/* Khu vực danh sách tin nhắn */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 custom-scrollbar flex flex-col justify-start">
         {/* Lời chào đầu kênh/DM */}
