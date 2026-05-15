@@ -9,7 +9,8 @@ const uiSlice = createSlice({
     activeChannelId: null as string | null, 
     openDropdown: false,
     activeModal: null as string | null,
-    activeCall: null as { userId: string, type: 'voice' | 'video', status: 'calling' | 'connected' } | null,
+    activeCall: null as { userId: string, type: 'voice' | 'video', status: 'calling' | 'connected', id?: string } | null,
+    incomingCall: null as { from: string, type: 'voice' | 'video', callId: string } | null,
     activeVoiceChannel: null as { id: string, name: string, guildId: string } | null
   },
   reducers: {
@@ -19,11 +20,17 @@ const uiSlice = createSlice({
     closedModal: (state) => { 
       state.activeModal = null;
     },
-    startCall: (state, action: PayloadAction<{ userId: string, type: 'voice' | 'video' }>) => {
+    startCall: (state, action: PayloadAction<{ userId: string, type: 'voice' | 'video', id?: string }>) => {
       state.activeCall = { ...action.payload, status: 'calling' };
     },
     endCall: (state) => {
       state.activeCall = null;
+    },
+    setIncomingCall: (state, action: PayloadAction<{ from: string, type: 'voice' | 'video', callId: string } | null>) => {
+      state.incomingCall = action.payload;
+    },
+    clearIncomingCall: (state) => {
+      state.incomingCall = null;
     },
     setCallStatus: (state, action: PayloadAction<'calling' | 'connected'>) => {
       if (state.activeCall) {
@@ -61,6 +68,8 @@ export const {
   pageSwitched,
   startCall,
   endCall,
+  setIncomingCall,
+  clearIncomingCall,
   setCallStatus,
   joinVoiceChannel,
   leaveVoiceChannel,

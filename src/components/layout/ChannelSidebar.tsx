@@ -3,6 +3,8 @@ import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../../hooks/useAppStore';
 import { joinVoiceChannel, openedModal } from '../../store/slices/uiSlice';
 import { logout, setFriends } from '../../store/slices/authSlice';
+import { channelDeleted, deleted as deleteGuild } from '../../store/slices/guildSlice';
+import { useCall } from '../../context/CallContext';
 import api from '../../services/api';
 import VoiceControlPanel from '../navigation/sidebar/VoiceControlPanel';
 
@@ -13,9 +15,10 @@ interface ChannelItemProps {
   type?: 'TEXT' | 'VOICE';
   to?: string;
   onClick?: () => void;
+  onDelete?: (e: React.MouseEvent) => void;
 }
 
-const ChannelItem: React.FC<ChannelItemProps> = ({ name, active, type = 'text', to, onClick }) => {
+const ChannelItem: React.FC<ChannelItemProps> = ({ id, name, active, type = 'TEXT', to, onClick, onDelete }) => {
   const content = (
     <div 
       onClick={onClick}
@@ -29,7 +32,23 @@ const ChannelItem: React.FC<ChannelItemProps> = ({ name, active, type = 'text', 
           <svg className="w-5 h-5 inline-block" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0-9 9 9 9 0 0 0 9 9 9 9 0 0 0 9-9 9 9 0 0 0-9-9Zm0 16a7 7 0 1 1 0-14 7 7 0 0 1 0 14Zm-4-7a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm8 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/></svg>
         )}
       </span>
-      <span className="font-medium truncate">{name}</span>
+      <span className="font-medium truncate flex-1">{name}</span>
+      
+      {onDelete && (
+        <button 
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onDelete(e);
+          }}
+          className="opacity-0 group-hover:opacity-100 p-1 hover:text-white transition-opacity ml-1"
+          title="Delete Channel"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </button>
+      )}
     </div>
   );
 
@@ -37,38 +56,41 @@ const ChannelItem: React.FC<ChannelItemProps> = ({ name, active, type = 'text', 
   return content;
 };
 
-interface UserPanelProps {
-  isMuted: boolean;
-  isDeafened: boolean;
-  onToggleMute: () => void;
-  onToggleDeafen: () => void;
-}
-
-const UserPanel: React.FC<UserPanelProps> = ({ isMuted, isDeafened, onToggleMute, onToggleDeafen }) => {
+const UserPanel: React.FC = () => {
   const user = useAppSelector((state) => state.auth.user);
   const dispatch = useAppDispatch();
+  const { isMuted, isDeafened, toggleMute, toggleDeafen } = useCall();
+  const [isOnline, setIsOnline] = useState(true);
   
   return (
-    <section className="h-[52px] bg-[#232428] px-2 flex items-center justify-between shrink-0">
-      <div className="flex items-center hover:bg-[#3f4147] p-1 rounded-md cursor-pointer transition-colors group flex-1 min-w-0">
+    <section className="h-[52px] bg-[#232428] px-2 flex items-center justify-between shrink-0 relative z-10">
+      <div 
+        onClick={() => setIsOnline(!isOnline)}
+        className="flex items-center hover:bg-[#3f4147] p-1 rounded-md cursor-pointer transition-colors group flex-1 min-w-0 mr-1"
+      >
         <div className="relative shrink-0">
             <div className="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center text-xs font-bold text-white">
                 {user?.username?.charAt(0).toUpperCase() || 'U'}
             </div>
-            <div className="absolute bottom-0 right-0 w-3 h-3 bg-[#23a55a] border-[3px] border-[#232428] rounded-full" />
+            <div className={`absolute bottom-0 right-0 w-3 h-3 border-[3px] border-[#232428] rounded-full transition-colors ${isOnline ? 'bg-[#23a55a]' : 'bg-[#747f8d]'}`} />
         </div>
         <div className="ml-2 text-xs flex-1 min-w-0">
           <div className="font-bold text-white leading-tight truncate">
             {user?.username || 'Guest'}
           </div>
-          <div className="text-[#b5bac1] group-hover:text-[#dbdee1] truncate">Online</div>
+          <div className="text-[#b5bac1] group-hover:text-[#dbdee1] truncate">
+            {isOnline ? 'Online' : 'Invisible'}
+          </div>
         </div>
       </div>
       
-      <div className="flex text-[#b5bac1] shrink-0 ml-2">
-        <div 
-          onClick={onToggleMute}
-          className={`w-8 h-8 flex items-center justify-center rounded hover:bg-[#3f4147] cursor-pointer relative ${isMuted ? 'text-[#f23f43]' : ''}`} 
+      <div className="flex items-center gap-0.5 shrink-0">
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+            if (!isDeafened) toggleMute();
+          }}
+          className={`w-8 h-8 flex items-center justify-center rounded hover:bg-[#3f4147] transition-all active:scale-90 relative ${isMuted ? 'text-[#f23f43]' : 'text-[#b5bac1] hover:text-[#dbdee1]'}`} 
           title={isMuted ? "Unmute" : "Mute"}
         >
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -76,13 +98,16 @@ const UserPanel: React.FC<UserPanelProps> = ({ isMuted, isDeafened, onToggleMute
           </svg>
           {isMuted && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-[2px] h-5 bg-[#f23f43] rotate-45 rounded-full shadow-sm" />
+              <div className="w-[1.5px] h-5 bg-[#f23f43] rotate-45 rounded-full" />
             </div>
           )}
-        </div>
-        <div 
-          onClick={onToggleDeafen}
-          className={`w-8 h-8 flex items-center justify-center rounded hover:bg-[#3f4147] cursor-pointer relative ${isDeafened ? 'text-[#f23f43]' : ''}`} 
+        </button>
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleDeafen();
+          }}
+          className={`w-8 h-8 flex items-center justify-center rounded hover:bg-[#3f4147] transition-all active:scale-90 relative ${isDeafened ? 'text-[#f23f43]' : 'text-[#b5bac1] hover:text-[#dbdee1]'}`} 
           title={isDeafened ? "Undeafen" : "Deafen"}
         >
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -90,20 +115,17 @@ const UserPanel: React.FC<UserPanelProps> = ({ isMuted, isDeafened, onToggleMute
           </svg>
           {isDeafened && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="w-[2px] h-5 bg-[#f23f43] rotate-45 rounded-full shadow-sm" />
+              <div className="w-[1.5px] h-5 bg-[#f23f43] rotate-45 rounded-full" />
             </div>
           )}
-        </div>
-        <div className="w-8 h-8 flex items-center justify-center rounded hover:bg-[#3f4147] cursor-pointer" title="User Settings">
-          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58ZM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6Z"/></svg>
-        </div>
-        <div 
+        </button>
+        <button 
           onClick={() => dispatch(logout())}
-          className="w-8 h-8 flex items-center justify-center rounded hover:bg-[#3f4147] cursor-pointer text-[#da373c] hover:text-[#f23f43]" 
+          className="w-8 h-8 flex items-center justify-center rounded hover:bg-[#3f4147] transition-all active:scale-90 text-[#da373c] hover:text-[#f23f43]" 
           title="Log Out"
         >
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M16 17v-3H9v-4h7V7l5 5-5 5M14 2a2 2 0 0 1 2 2v2h-2V4H5v16h9v-2h2v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9z"/></svg>
-        </div>
+        </button>
       </div>
     </section>
   );
@@ -119,33 +141,66 @@ const ChannelSidebar: React.FC = () => {
   const isMePage = location.pathname.startsWith('/channels/@me');
   const activeVoiceChannel = ui.activeVoiceChannel;
   
-  // Quản lý trạng thái âm thanh
-  const [isMuted, setIsMuted] = useState(false);
-  const [isDeafened, setIsDeafened] = useState(false);
-
   const currentUser = useAppSelector((state) => state.auth.user);
   const friends = useAppSelector((state) => state.auth.friends);
-
-  const handleToggleMute = () => {
-    if (isDeafened) return;
-    setIsMuted(!isMuted);
-  };
-
-  const handleToggleDeafen = () => {
-    const newState = !isDeafened;
-    setIsDeafened(newState);
-    if (newState) {
-      setIsMuted(true);
-    }
-  };
 
   const activeGuild = guilds.find((g: any) => g.id === ui.activeGuildId);
   const textChannels = activeGuild?.channels?.filter((c: any) => c.type === 'TEXT') || [];
   const voiceChannels = activeGuild?.channels?.filter((c: any) => c.type === 'VOICE') || [];
 
+  const handleDeleteChannel = async (channelId: string) => {
+    if (!window.confirm("Are you sure you want to delete this channel?")) return;
+
+    try {
+      await api.delete(`/channels/${channelId}`);
+      if (ui.activeGuildId) {
+        dispatch(channelDeleted({ guildId: ui.activeGuildId, channelId }));
+        // Nếu đang ở channel bị xóa, chuyển về channel đầu tiên còn lại hoặc trang chủ server
+        if (location.pathname.includes(channelId)) {
+          navigate(`/channels/${ui.activeGuildId}`);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to delete channel:", error);
+      alert("Failed to delete channel.");
+    }
+  };
+
+  const handleDeleteGuild = async () => {
+    if (!activeGuild) return;
+    if (!window.confirm(`Are you sure you want to delete server "${activeGuild.name}"? This will also delete all its channels.`)) return;
+
+    try {
+      // 1. Xóa tất cả channels của guild này ở backend
+      if (activeGuild.channels) {
+        for (const channel of activeGuild.channels) {
+          try {
+            await api.delete(`/channels/${channel.id}`);
+          } catch (e) {
+            console.warn(`Failed to delete channel ${channel.id} during guild deletion:`, e);
+          }
+        }
+      }
+
+      // 2. Thông báo cho bạn bè qua Socket
+      const ws = (await import('../../services/ws')).default;
+      ws.emit('sync-delete-guild', { guildId: activeGuild.id });
+
+      // 3. Xóa guild ở frontend
+      dispatch(deleteGuild({ guildId: activeGuild.id }));
+      
+      // 4. Quay về trang chủ
+      navigate('/channels/@me');
+    } catch (error) {
+      console.error("Failed to delete guild:", error);
+      alert("Failed to delete server.");
+    }
+  };
+
   const handleJoinVoice = (id: string, name: string) => {
-    dispatch(joinVoiceChannel({ id, name, guildId: ui.activeGuildId || 'hust-server' }));
-    navigate(`/channels/${ui.activeGuildId}/${id}`);
+    const guildId = activeGuild?.id || ui.activeGuildId || 'hust-server';
+    dispatch(joinVoiceChannel({ id, name, guildId }));
+    navigate(`/channels/${guildId}/${id}`);
   };
   
   // Tải danh sách bạn bè thật khi vào trang Me
@@ -204,10 +259,21 @@ const ChannelSidebar: React.FC = () => {
   return (
     <aside className="w-60 bg-[#2b2d31] flex flex-col flex-shrink-0">
       {/* Header */}
-      <div className="h-12 border-b border-[#1e1f22] flex items-center px-4 shadow-sm font-bold text-white hover:bg-[#3f4147] cursor-pointer transition-colors shrink-0">
-        <span className="truncate">
+      <div className="h-12 border-b border-[#1e1f22] flex items-center justify-between px-4 shadow-sm font-bold text-white hover:bg-[#3f4147] cursor-pointer transition-colors shrink-0 group/header">
+        <span className="truncate flex-1">
           {isMePage ? 'Start a conversation' : (activeGuild?.name || 'HustCord Server')}
         </span>
+        {!isMePage && activeGuild && (
+          <button 
+            onClick={(e) => { e.stopPropagation(); handleDeleteGuild(); }}
+            className="opacity-0 group-hover/header:opacity-100 p-1 hover:text-[#f23f43] transition-all"
+            title="Delete Server"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        )}
       </div>
       
       {/* Content List */}
@@ -271,6 +337,7 @@ const ChannelSidebar: React.FC = () => {
                     type="TEXT"
                     to={`/channels/${ui.activeGuildId}/${ch.id}`}
                     active={location.pathname.includes(ch.id)} 
+                    onDelete={() => handleDeleteChannel(ch.id)}
                   />
                 ))}
               </>
@@ -279,7 +346,7 @@ const ChannelSidebar: React.FC = () => {
             {/* Render Voice Channels */}
             <div className="mt-4">
               <div className="flex items-center justify-between px-1 mb-1 text-[#80848e] hover:text-[#dbdee1] cursor-pointer group">
-                <span className="text-[11px] font-bold uppercase tracking-wider select-none">Voice Channels</span>
+                <span className="text-[11px] font-bold uppercase tracking-wider select-none">Channels</span>
                 <span 
                   onClick={(e) => { e.stopPropagation(); dispatch(openedModal('CREATE_CHANNEL')); }}
                   className="text-lg opacity-0 group-hover:opacity-100 transition-opacity"
@@ -293,6 +360,7 @@ const ChannelSidebar: React.FC = () => {
                   type="VOICE" 
                   active={activeVoiceChannel?.id === ch.id}
                   onClick={() => handleJoinVoice(ch.id, ch.name)} 
+                  onDelete={() => handleDeleteChannel(ch.id)}
                 />
               )) : (
                 <div className="px-2 py-1 text-xs text-[#80848e] italic">No voice channels</div>
@@ -303,15 +371,10 @@ const ChannelSidebar: React.FC = () => {
       </div>
 
       {/* Voice Connection Status */}
-      <VoiceControlPanel isMuted={isMuted} isDeafened={isDeafened} />
+      <VoiceControlPanel />
 
       {/* Thông tin người dùng hiện tại */}
-      <UserPanel 
-        isMuted={isMuted} 
-        isDeafened={isDeafened} 
-        onToggleMute={handleToggleMute} 
-        onToggleDeafen={handleToggleDeafen} 
-      />
+      <UserPanel />
     </aside>
   );
 };

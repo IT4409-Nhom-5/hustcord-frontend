@@ -9,25 +9,61 @@ const CreateGuildModal: React.FC = () => {
   const dispatch = useAppDispatch();
   const currentUser = useAppSelector((state) => state.auth.user);
   const [name, setName] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim() || !currentUser) return;
 
-    const guildId = Date.now().toString();
-    const newGuild: Guild = {
-      id: guildId,
-      name: name.trim(),
-      ownerId: currentUser.id,
-      createdAt: new Date().toISOString(),
-      channels: [
-        { id: 'general', name: 'general', type: 'TEXT', guildId: guildId, createdAt: new Date().toISOString() }
-      ],
-      members: [currentUser]
-    };
+    setLoading(true);
+    try {
+      const api = (await import('../../services/api')).default;
+      const guildId = crypto.randomUUID(); 
 
-    dispatch(created({ guild: newGuild }));
-    dispatch(closedModal());
+      const response = await api.post('/channels', {
+        name: name.trim(),
+        description: `Welcome to ${name.trim()}!`,
+        participants: [currentUser.id],
+        admins: [currentUser.id],
+        image: '',
+        guildId: guildId
+      });
+
+      if (response.data.channel) {
+        const backendChannel = response.data.channel;
+        
+        const newGuild: Guild = {
+          id: guildId,
+          name: name.trim(),
+          ownerId: currentUser.id,
+          createdAt: new Date().toISOString(),
+          channels: [
+            { 
+              id: backendChannel.id, 
+              name: 'general', 
+              type: 'TEXT', 
+              guildId: guildId, 
+              createdAt: backendChannel.createdAt 
+            }
+          ],
+          members: [currentUser]
+        };
+
+        dispatch(created({ guild: newGuild }));
+        
+        // Phát tín hiệu đồng bộ Guild qua Socket cho bạn bè
+        const ws = (await import('../../services/ws')).default;
+        ws.emit('sync-guild', newGuild);
+
+        dispatch(closedModal());
+      }
+    } catch (error: any) {
+      console.error("Failed to create guild/channel in backend:", error);
+      const errorMsg = error.response?.data?.message || error.message || "Unknown error";
+      alert(`Failed to create server: ${errorMsg}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -73,9 +109,10 @@ const CreateGuildModal: React.FC = () => {
           </button>
           <button 
             type="submit"
-            className="bg-[#5865f2] hover:bg-[#4752c4] text-white text-sm font-medium px-8 py-2 rounded transition-colors shadow-lg"
+            disabled={loading}
+            className={`bg-[#5865f2] hover:bg-[#4752c4] text-white text-sm font-medium px-8 py-2 rounded transition-colors shadow-lg ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            Create
+            {loading ? "Creating..." : "Create"}
           </button>
         </div>
       </form>

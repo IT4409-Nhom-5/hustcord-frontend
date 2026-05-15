@@ -26,7 +26,10 @@ const guildSlice = createSlice({
     channelCreated: (state, action: PayloadAction<{ guildId: string; channel: Channel }>) => {
       const guild = state.list.find((g) => g.id === action.payload.guildId);
       if (guild && guild.channels) {
-        guild.channels.push(action.payload.channel);
+        const exists = guild.channels.some(c => c.id === action.payload.channel.id);
+        if (!exists) {
+          guild.channels.push(action.payload.channel);
+        }
       }
     },
     channelDeleted: (state, action: PayloadAction<{ guildId: string; channelId: string }>) => {
@@ -51,7 +54,10 @@ const guildSlice = createSlice({
       // Logic for storing invites if needed
     },
     created: (state, action: PayloadAction<{ guild: Guild }>) => {
-      state.list.push(action.payload.guild);
+      const exists = state.list.some(g => g.id === action.payload.guild.id);
+      if (!exists) {
+        state.list.push(action.payload.guild);
+      }
     },
     deleted: (state, action: PayloadAction<{ guildId: string }>) => {
       state.list = state.list.filter((g) => g.id !== action.payload.guildId);

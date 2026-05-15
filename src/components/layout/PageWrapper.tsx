@@ -4,6 +4,7 @@ import WSListener from '../WSListener';
 import CreateGuildModal from '../modals/CreateGuildModal';
 import CreateChannelModal from '../modals/CreateChannelModal';
 import CallOverlay from '../channel/CallOverlay';
+import CallManager from '../channel/CallManager';
 
 export interface PageWrapperProps extends React.DetailedHTMLProps<React.HTMLAttributes<HTMLDivElement>, HTMLDivElement> {
   pageTitle?: string;
@@ -19,6 +20,7 @@ const PageWrapper: React.FC<PageWrapperProps> = ({ pageTitle = 'HustCord', child
       {children}
       
       <WSListener />
+      <CallManager />
 
       {/* Global Overlays & Modals */}
       {activeCall && <CallOverlay />}

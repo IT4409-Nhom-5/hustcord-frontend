@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../hooks/useAppStore';
 import { setActiveGuild } from '../store/slices/guildSlice';
 import PageWrapper from '../components/layout/PageWrapper';
@@ -12,9 +12,12 @@ import MemberList from '../components/navigation/sidebar/MemberList';
 
 const GuildPage: React.FC = () => {
   const { guildId, channelId } = useParams();
+  const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const guilds = useAppSelector((state) => state.guilds.list);
   
+  const activeGuild = guilds.find(g => g.id === guildId);
+
   // Cập nhật guild đang hoạt động vào store khi URL thay đổi
   useEffect(() => {
     if (guildId) {
@@ -22,8 +25,21 @@ const GuildPage: React.FC = () => {
     }
   }, [guildId, dispatch]);
 
+  // Redirect to first channel if none is selected or ID is invalid
+  useEffect(() => {
+    const isUUID = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+    const isInvalidChannel = !channelId || !isUUID(channelId);
+
+    if (activeGuild && isInvalidChannel && activeGuild.channels && activeGuild.channels.length > 0) {
+      // Tìm channel text đầu tiên hoặc channel bất kỳ
+      const firstChannel = activeGuild.channels.find(c => c.type === 'TEXT') || activeGuild.channels[0];
+      if (firstChannel && isUUID(firstChannel.id)) {
+        navigate(`/channels/${guildId}/${firstChannel.id}`, { replace: true });
+      }
+    }
+  }, [activeGuild, channelId, guildId, navigate]);
+
   // Tìm channel hiện tại để biết type (text hay voice)
-  const activeGuild = guilds.find(g => g.id === guildId);
   const activeChannel = activeGuild?.channels?.find(c => c.id === channelId);
   const isVoiceChannel = activeChannel?.type === 'VOICE';
 

@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from '../../hooks/useAppStore';
 import { channelCreated } from '../../store/slices/guildSlice';
 import { closedModal, openedModal } from '../../store/slices/uiSlice';
 import type { Channel } from '../../types';
+import api from '../../services/api';
 
 const CreateChannelModal: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -11,24 +12,53 @@ const CreateChannelModal: React.FC = () => {
   const [name, setName] = useState('');
   const [type, setType] = useState<'TEXT' | 'VOICE'>('TEXT');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !activeGuildId) return;
+    if (!name.trim() || !activeGuildId) {
+      if (!activeGuildId) alert("Please select a server first.");
+      return;
+    }
 
-    const formattedName = type === 'TEXT' 
-      ? name.trim().toLowerCase().replace(/\s+/g, '-')
-      : name.trim();
+    setLoading(true);
+    try {
+      // Gọi API tạo channel thật ở Backend
+      const response = await api.post('/channels', {
+        name: name.trim(),
+        description: `${type} channel in guild`,
+        participants: [], 
+        admins: [],
+        image: '',
+        guildId: activeGuildId
+      });
 
-    const newChannel: Channel = {
-      id: Date.now().toString(),
-      name: formattedName,
-      type: type,
-      guildId: activeGuildId,
-      createdAt: new Date().toISOString()
-    };
+      if (response.data.channel) {
+        const backendChannel = response.data.channel;
+        const formattedName = type === 'TEXT' 
+          ? name.trim().toLowerCase().replace(/\s+/g, '-')
+          : name.trim();
 
-    dispatch(channelCreated({ guildId: activeGuildId, channel: newChannel }));
-    dispatch(closedModal());
+        const newChannel: Channel = {
+          id: backendChannel.id, // Dùng ID thật từ Backend (là UUID)
+          name: formattedName,
+          type: type,
+          guildId: activeGuildId,
+          createdAt: backendChannel.createdAt
+        };
+
+        dispatch(channelCreated({ guildId: activeGuildId, channel: newChannel }));
+        dispatch(closedModal());
+      } else {
+        alert("Server returned success but no channel data.");
+      }
+    } catch (error: any) {
+      console.error("Failed to create channel in backend:", error);
+      const errorMsg = error.response?.data?.message || error.message || "Unknown error";
+      alert(`Failed to create channel: ${errorMsg}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -87,9 +117,10 @@ const CreateChannelModal: React.FC = () => {
           </button>
           <button 
             type="submit"
-            className="bg-[#5865f2] hover:bg-[#4752c4] text-white text-sm font-medium px-6 py-2 rounded transition-colors"
+            disabled={loading}
+            className={`bg-[#5865f2] hover:bg-[#4752c4] text-white text-sm font-medium px-6 py-2 rounded transition-colors ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            Create Channel
+            {loading ? "Creating..." : "Create Channel"}
           </button>
         </div>
       </form>

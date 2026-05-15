@@ -11,12 +11,12 @@ const ChatArea: React.FC = () => {
   const dispatch = useAppDispatch();
   const location = useLocation();
   
-  // Use "general" if no channel ID is in the URL yet
-  const activeChannelId = channelId || 'general';
+  // Use null if no channel ID is in the URL yet to avoid invalid API calls
+  const activeChannelId = channelId || null;
   
   const isDM = location.pathname.startsWith('/channels/@me');
   const { userId } = useParams();
-  const friendName = userId === '1' ? 'Wumpus' : userId === '2' ? 'Clyde' : 'Friend';
+  const friendName = userId === '550e8400-e29b-41d4-a716-446655440000' ? 'Wumpus' : userId === '550e8400-e29b-41d4-a716-446655440001' ? 'Clyde' : 'Friend';
   const guilds = useAppSelector((state) => state.guilds.list);
   const activeGuildId = guildId || useAppSelector((state) => state.ui.activeGuildId);
   const activeGuild = guilds.find((g) => g.id === activeGuildId);
@@ -52,22 +52,28 @@ const ChatArea: React.FC = () => {
   
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Helper kiểm tra định dạng UUID
+  const isUUID = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+
   // Tải lịch sử tin nhắn khi đổi kênh
   useEffect(() => {
-    if (activeChannelId) {
+    // Chỉ fetch nếu ID là UUID hợp lệ hoặc là DM với user ID hợp lệ
+    const isValidId = activeChannelId && isUUID(activeChannelId);
+    const isValidDM = isDM && currentUser && userId && isUUID(userId);
+
+    if (isValidId || isValidDM) {
       const fetchMessages = async () => {
         try {
           let response;
           if (isDM && currentUser) {
-            // Tải tin nhắn 1-1: /messages/direct/nguoi_gui/nguoi_nhan
-            // Ở đây userId trong useParams chính là ID của bạn bè
+            // Tải tin nhắn 1-1
             response = await api.get(`/messages/direct/${currentUser.id}/${userId}`);
-          } else {
+          } else if (activeChannelId) {
             // Tải tin nhắn kênh
             response = await api.get(`/messages/channel/${activeChannelId}`);
           }
 
-          if (Array.isArray(response.data)) {
+          if (response && Array.isArray(response.data)) {
             const mappedMessages = response.data.map((m: any) => ({
               ...m,
               content: m.text,
@@ -76,7 +82,7 @@ const ChatArea: React.FC = () => {
               author: m.user || { username: 'Unknown' }
             }));
             dispatch(setMessages(mappedMessages));
-          } else {
+          } else if (response) {
             console.error("API returned non-array data:", response.data);
             dispatch(setMessages([]));
           }
@@ -85,6 +91,9 @@ const ChatArea: React.FC = () => {
         }
       };
       fetchMessages();
+    } else {
+      // Nếu ID không hợp lệ, xóa danh sách tin nhắn hiện tại
+      dispatch(setMessages([]));
     }
   }, [activeChannelId, isDM, userId, currentUser, dispatch]);
 

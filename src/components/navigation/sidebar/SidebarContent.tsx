@@ -16,14 +16,11 @@ const SidebarContent: React.FC = () => {
   
   // Fake data for UI preview since we don't have DMs/Channels state fully mapped yet
   const dmList = [
-    { id: '1', name: 'Wumpus', status: 'online' },
-    { id: '2', name: 'Clyde', status: 'idle' },
+    { id: '550e8400-e29b-41d4-a716-446655440000', name: 'Wumpus', status: 'online' },
+    { id: '550e8400-e29b-41d4-a716-446655440001', name: 'Clyde', status: 'idle' },
   ];
 
-  const channels = activeGuild?.channels || [
-    { id: 'general', name: 'general' },
-    { id: 'voice', name: 'General Voice' },
-  ];
+  const channels = activeGuild?.channels || [];
 
   return (
     <div className="w-[240px] bg-[#2b2d31] flex flex-col h-screen shrink-0">

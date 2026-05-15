@@ -3,15 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../hooks/useAppStore';
 import { endCall, leaveVoiceChannel } from '../../../store/slices/uiSlice';
 
-interface VoiceControlPanelProps {
-  isMuted: boolean;
-  isDeafened: boolean;
-}
+import { useCall } from '../../../context/CallContext';
 
-const VoiceControlPanel: React.FC<VoiceControlPanelProps> = ({ isMuted, isDeafened }) => {
+const VoiceControlPanel: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const ui = useAppSelector((state) => state.ui);
+  const { isMuted, isDeafened, hangup, leaveVoiceRoom } = useCall();
   
   const { activeCall, activeVoiceChannel } = ui;
 
@@ -19,15 +17,15 @@ const VoiceControlPanel: React.FC<VoiceControlPanelProps> = ({ isMuted, isDeafen
   if (!activeCall && !activeVoiceChannel) return null;
 
   const handleDisconnect = () => {
+    console.log(">>> [ACTION] Disconnecting via VoiceControlPanel");
     if (activeCall) {
       const targetUserId = activeCall.userId;
-      dispatch(endCall());
-      // Chuyển hướng về trang chat văn bản cá nhân
+      hangup(); // Gọi hàm ngắt kết nối thực tế
       navigate(`/channels/@me/${targetUserId}`);
     } else if (activeVoiceChannel) {
       const guildId = activeVoiceChannel.guildId;
+      leaveVoiceRoom(activeVoiceChannel.id); // Gọi hàm rời phòng thực tế
       dispatch(leaveVoiceChannel());
-      // Chuyển hướng về trang chủ của Server
       navigate(`/channels/${guildId}`);
     }
   };
