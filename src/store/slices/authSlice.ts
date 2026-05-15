@@ -3,6 +3,7 @@ import type { User } from '../../types';
 
 interface AuthState {
   user: User | null;
+  friends: User[];
   token: string | null;
   loading: boolean;
   error: string | null;
@@ -10,6 +11,7 @@ interface AuthState {
 
 const initialState: AuthState = {
   user: null,
+  friends: [],
   token: localStorage.getItem('token'),
   loading: false,
   error: null,
@@ -35,6 +37,7 @@ const authSlice = createSlice({
     },
     logout: (state) => {
       state.user = null;
+      state.friends = [];
       state.token = null;
       localStorage.removeItem('token');
     },
@@ -60,6 +63,12 @@ const authSlice = createSlice({
         Object.assign(state.user, action.payload);
       }
     },
+    clearError: (state) => {
+      state.error = null;
+    },
+    setFriends: (state, action: PayloadAction<User[]>) => {
+      state.friends = action.payload;
+    },
   },
 });
 
@@ -67,7 +76,7 @@ export const {
   loginStart, loginSuccess, loginFailure, 
   logout, 
   registerStart, registerSuccess, registerFailure,
-  ready, updatedUser
+  ready, updatedUser, clearError, setFriends
 } = authSlice.actions;
 
 // Giả lập async actions cho register

@@ -1,11 +1,14 @@
 import React, { useEffect, useRef } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
-import { useAppSelector } from '../../hooks/useAppStore';
+import { useAppDispatch, useAppSelector } from '../../hooks/useAppStore';
 import Message from './Message';
 import MessageBox from './MessageBox';
+import { setMessages } from '../../store/slices/messageSlice';
+import api from '../../services/api';
 
 const ChatArea: React.FC = () => {
   const { guildId, channelId } = useParams();
+  const dispatch = useAppDispatch();
   const location = useLocation();
   
   // Use "general" if no channel ID is in the URL yet
@@ -22,10 +25,18 @@ const ChatArea: React.FC = () => {
     ? friendName 
     : activeGuild?.channels?.find((c) => c.id === activeChannelId)?.name || 'general';
   
-  const messages = useAppSelector((state) => state.messages.list)
-    .filter((m) => isDM ? m.userId === userId : m.channelId === activeChannelId);
-    
   const currentUser = useAppSelector((state) => state.auth.user);
+  
+  const messages = useAppSelector((state) => state.messages.list)
+    .filter((m) => {
+      if (isDM) {
+        // Hiện tin nhắn nếu (mình gửi cho bạn) HOẶC (bạn gửi cho mình)
+        // Sử dụng == để tránh lỗi lệch kiểu dữ liệu (String vs UUID)
+        return (m.recipientId == userId && m.userId == currentUser?.id) || 
+               (m.recipientId == currentUser?.id && m.userId == userId);
+      }
+      return m.channelId === activeChannelId;
+    });
   
   const typingUsers = useAppSelector((state) => state.channels.typingUsers)
     .filter((t) => {
@@ -40,6 +51,42 @@ const ChatArea: React.FC = () => {
     });
   
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Tải lịch sử tin nhắn khi đổi kênh
+  useEffect(() => {
+    if (activeChannelId) {
+      const fetchMessages = async () => {
+        try {
+          let response;
+          if (isDM && currentUser) {
+            // Tải tin nhắn 1-1: /messages/direct/nguoi_gui/nguoi_nhan
+            // Ở đây userId trong useParams chính là ID của bạn bè
+            response = await api.get(`/messages/direct/${currentUser.id}/${userId}`);
+          } else {
+            // Tải tin nhắn kênh
+            response = await api.get(`/messages/channel/${activeChannelId}`);
+          }
+
+          if (Array.isArray(response.data)) {
+            const mappedMessages = response.data.map((m: any) => ({
+              ...m,
+              content: m.text,
+              authorId: m.userId,
+              recipientId: m.recipientId,
+              author: m.user || { username: 'Unknown' }
+            }));
+            dispatch(setMessages(mappedMessages));
+          } else {
+            console.error("API returned non-array data:", response.data);
+            dispatch(setMessages([]));
+          }
+        } catch (error) {
+          console.error("Failed to fetch messages:", error);
+        }
+      };
+      fetchMessages();
+    }
+  }, [activeChannelId, isDM, userId, currentUser, dispatch]);
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {

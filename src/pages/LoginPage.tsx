@@ -4,7 +4,7 @@ import { Link, Navigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useAppDispatch, useAppSelector } from '../hooks/useAppStore';
 import Input from '../components/ui/Input';
-import { loginStart, loginSuccess, loginFailure } from '../store/slices/authSlice';
+import { loginStart, loginSuccess, loginFailure, clearError } from '../store/slices/authSlice';
 import api from '../services/api';
 
 // Giả lập background image bằng css pattern hoặc solid color
@@ -15,6 +15,11 @@ const LoginPage: React.FC = () => {
   
   const dispatch = useAppDispatch();
   const { register, handleSubmit } = useForm();
+
+  // Xóa lỗi khi vào trang
+  React.useEffect(() => {
+    dispatch(clearError());
+  }, [dispatch]);
 
   // Đây là logic login THẬT (có thể chưa chạy được ngay nếu Backend chưa cấu hình xong CORS hoàn toàn, nhưng cấu trúc thì đúng)
   const onSubmit = async (data: any) => {
@@ -56,10 +61,11 @@ const LoginPage: React.FC = () => {
             )}
 
             <Input
-              label="EMAIL OR PHONE NUMBER"
+              label="EMAIL"
               name="email"
               register={register}
               className="mt-4"
+              placeholder="Enter your email"
               required
             />
             
@@ -69,6 +75,7 @@ const LoginPage: React.FC = () => {
                 name="password"
                 type="password"
                 register={register}
+                placeholder="Enter your password"
                 required
               />
               <a href="#" className="text-[#00a8fc] hover:underline text-xs font-medium mt-1 inline-block absolute right-0 -bottom-6">

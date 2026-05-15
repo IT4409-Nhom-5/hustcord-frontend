@@ -16,7 +16,7 @@ const SidebarIcon: React.FC<SidebarIconProps> = ({ to, imageURL, name, isAction,
   const content = imageURL ? (
     <img src={imageURL} alt={name} className="w-full h-full object-cover" />
   ) : (
-    <span className="text-xl font-medium">{name.charAt(0)}</span>
+    <span className="text-xl font-medium">{isAction ? '+' : name.charAt(0)}</span>
   );
 
   const wrapperClass = `

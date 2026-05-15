@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useLocation, Link, useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../../hooks/useAppStore';
 import { joinVoiceChannel, openedModal } from '../../store/slices/uiSlice';
-import { logout } from '../../store/slices/authSlice';
+import { logout, setFriends } from '../../store/slices/authSlice';
+import api from '../../services/api';
 import VoiceControlPanel from '../navigation/sidebar/VoiceControlPanel';
 
 interface ChannelItemProps {
@@ -113,13 +114,17 @@ const ChannelSidebar: React.FC = () => {
   const location = useLocation();
   const ui = useAppSelector((state) => state.ui);
   const guilds = useAppSelector((state) => state.guilds.list);
+  const navigate = useNavigate();
   
   const isMePage = location.pathname.startsWith('/channels/@me');
   const activeVoiceChannel = ui.activeVoiceChannel;
   
-  // Quản lý trạng thái âm thanh tại đây để chia sẻ giữa UserPanel và VoiceControlPanel
+  // Quản lý trạng thái âm thanh
   const [isMuted, setIsMuted] = useState(false);
   const [isDeafened, setIsDeafened] = useState(false);
+
+  const currentUser = useAppSelector((state) => state.auth.user);
+  const friends = useAppSelector((state) => state.auth.friends);
 
   const handleToggleMute = () => {
     if (isDeafened) return;
@@ -134,20 +139,66 @@ const ChannelSidebar: React.FC = () => {
     }
   };
 
-  // Tìm kiếm Guild hiện tại từ danh sách chung để đảm bảo dữ liệu luôn mới nhất
   const activeGuild = guilds.find((g: any) => g.id === ui.activeGuildId);
-
-  // Lọc danh sách kênh từ Guild tìm được
   const textChannels = activeGuild?.channels?.filter((c: any) => c.type === 'TEXT') || [];
   const voiceChannels = activeGuild?.channels?.filter((c: any) => c.type === 'VOICE') || [];
 
-  const navigate = useNavigate();
-
   const handleJoinVoice = (id: string, name: string) => {
-    // 1. Kết nối âm thanh
     dispatch(joinVoiceChannel({ id, name, guildId: ui.activeGuildId || 'hust-server' }));
-    // 2. Chuyển hướng giao diện chính vào phòng gọi
     navigate(`/channels/${ui.activeGuildId}/${id}`);
+  };
+  
+  // Tải danh sách bạn bè thật khi vào trang Me
+  React.useEffect(() => {
+    if (isMePage && currentUser) {
+      const fetchFriends = async () => {
+        try {
+          const response = await api.get(`/users/${currentUser.id}/friends`);
+          if (response.data.statusCode === '200') {
+            dispatch(setFriends(response.data.friends));
+          }
+        } catch (error) {
+          console.error("Failed to fetch friends:", error);
+        }
+      };
+      fetchFriends();
+    }
+  }, [isMePage, currentUser, dispatch]);
+
+  const handleAddFriend = async () => {
+    const username = prompt("Enter the username of the friend you want to add:");
+    if (!username || !currentUser) return;
+
+    try {
+      const searchRes = await api.get(`/users/search/${username}`);
+      const foundUsers = searchRes.data;
+      
+      if (!foundUsers || foundUsers.length === 0) {
+        alert("User not found!");
+        return;
+      }
+
+      const targetUser = foundUsers[0];
+      if (targetUser.id === currentUser.id) {
+        alert("You cannot add yourself!");
+        return;
+      }
+
+      await api.post('/users/friend', {
+        id: currentUser.id,
+        otherId: targetUser.id,
+        status: true
+      });
+
+      alert(`Successfully added ${username} as a friend!`);
+      
+      const response = await api.get(`/users/${currentUser.id}/friends`);
+      dispatch(setFriends(response.data.friends));
+
+    } catch (error) {
+      console.error("Add friend failed:", error);
+      alert("Failed to add friend.");
+    }
   };
 
   return (
@@ -168,23 +219,41 @@ const ChannelSidebar: React.FC = () => {
               <span className="font-medium">Friends</span>
             </Link>
             
-            <div className="mb-1 pl-2 text-xs font-semibold text-[#80848e] uppercase select-none">Direct Messages</div>
-            {/* Fake DMs for preview */}
-            {[
-              { id: '1', name: 'Wumpus', status: 'online' },
-              { id: '2', name: 'Clyde', status: 'idle' },
-            ].map(dm => (
-              <Link 
-                key={dm.id} 
-                to={`/channels/@me/${dm.id}`}
-                className={`flex items-center px-2 py-1.5 rounded hover:bg-[#35373c] text-[#80848e] hover:text-[#dbdee1] cursor-pointer group ${location.pathname === `/channels/@me/${dm.id}` ? 'bg-[#3f4147] text-white' : ''}`}
+            <div className="mb-1 px-2 flex items-center justify-between group/dm">
+              <span className="text-xs font-semibold text-[#80848e] uppercase select-none">Direct Messages</span>
+              <button 
+                onClick={handleAddFriend}
+                className="text-[#80848e] hover:text-[#dbdee1] transition-colors" 
+                title="Add Friend"
               >
-                <div className="w-8 h-8 rounded-full bg-gray-500 mr-3 relative shrink-0">
-                  <div className={`absolute bottom-0 right-0 w-3 h-3 border-2 border-[#2b2d31] rounded-full group-hover:border-[#35373c] ${dm.status === 'online' ? 'bg-[#23a559]' : 'bg-[#f0b232]'}`}></div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2Zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2Z"/></svg>
+              </button>
+            </div>
+
+            {/* Danh sách bạn bè thật từ Store */}
+            {Array.isArray(friends) && friends.length > 0 ? friends.map(friend => (
+              <Link 
+                key={friend?.id} 
+                to={`/channels/@me/${friend?.id}`}
+                className={`flex items-center px-2 py-1.5 rounded hover:bg-[#35373c] text-[#80848e] hover:text-[#dbdee1] cursor-pointer group ${location.pathname === `/channels/@me/${friend?.id}` ? 'bg-[#3f4147] text-white' : ''}`}
+              >
+                <div className="w-8 h-8 rounded-full bg-indigo-500 mr-3 relative shrink-0 flex items-center justify-center text-xs font-bold text-white">
+                  {friend?.username?.charAt(0).toUpperCase() || '?'}
+                  <div className="absolute bottom-0 right-0 w-3 h-3 border-2 border-[#2b2d31] rounded-full group-hover:border-[#35373c] bg-[#23a559]"></div>
                 </div>
-                <span className="font-medium truncate">{dm.name}</span>
+                <span className="font-medium truncate">{friend?.username || 'Unknown User'}</span>
               </Link>
-            ))}
+            )) : (
+              <div className="px-4 py-8 text-center">
+                <p className="text-xs text-[#80848e]">No friends yet.</p>
+                <button 
+                  onClick={handleAddFriend}
+                  className="mt-2 text-xs text-[#00a8fc] hover:underline"
+                >
+                  Add your first friend!
+                </button>
+              </div>
+            )}
           </div>
         ) : (
           <>

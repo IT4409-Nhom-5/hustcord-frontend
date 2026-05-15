@@ -2,13 +2,11 @@ import React from 'react';
 import { useAppSelector } from '../../../hooks/useAppStore';
 
 const MemberList: React.FC = () => {
-  const users = useAppSelector((state) => state.users.list);
+  const friends = useAppSelector((state) => state.auth.friends);
+  const users = useAppSelector((state) => state.users?.list || []);
   
-  // Use fake data if no users exist in state yet
-  const displayUsers = users.length > 0 ? users : [
-    { id: '1', username: 'Wumpus', status: 'online' },
-    { id: '2', username: 'Clyde', status: 'offline' }
-  ];
+  // Ưu tiên hiển thị danh sách bạn bè nếu không có danh sách thành viên Guild
+  const displayUsers = users.length > 0 ? users : friends;
 
   return (
     <div className="w-[240px] bg-[#2b2d31] flex flex-col shrink-0">

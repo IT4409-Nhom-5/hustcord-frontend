@@ -12,7 +12,7 @@ import metaReducer from './slices/metaSlice';
 const persistConfig = {
   key: 'root',
   storage: (storage as any).default || storage, 
-  whitelist: ['auth'] 
+  whitelist: ['auth', 'ui', 'guilds', 'messages'] 
 };
 
 const rootReducer = combineReducers({

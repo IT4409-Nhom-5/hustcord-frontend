@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, Navigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useAppDispatch, useAppSelector } from '../hooks/useAppStore';
-import { registerStart, registerSuccess, registerFailure } from '../store/slices/authSlice';
+import { registerStart, registerSuccess, registerFailure, clearError } from '../store/slices/authSlice';
 import PageWrapper from '../components/layout/PageWrapper';
 import Input from '../components/ui/Input';
 import api from '../services/api';
@@ -17,18 +17,33 @@ const RegisterPage: React.FC = () => {
   const dispatch = useAppDispatch();
   const { register, handleSubmit } = useForm();
 
+  // Xóa lỗi cũ khi vào trang
+  React.useEffect(() => {
+    dispatch(clearError());
+  }, [dispatch]);
+
   const onSubmit = async (data: any) => {
     dispatch(registerStart());
     try {
-      const response = await api.post('/auth/register', {
+      // 1. Đăng ký tài khoản
+      await api.post('/auth/register', {
         email: data.email,
         username: data.username,
         password: data.password,
       });
+      
+      // 2. Đăng ký xong thì tự động Đăng nhập luôn để lấy Token
+      const loginResponse = await api.post('/auth/login', {
+        email: data.email,
+        password: data.password,
+      });
+
+      // 3. Lưu thông tin vào Redux -> Chuyển trang tự động
       dispatch(registerSuccess({
-        user: response.data.user,
-        token: response.data.access_token,
+        user: loginResponse.data.user,
+        token: loginResponse.data.access_token,
       }));
+      
     } catch (err: any) {
       dispatch(registerFailure(err.response?.data?.message || 'Registration failed'));
     }
@@ -64,7 +79,7 @@ const RegisterPage: React.FC = () => {
               name="username"
               register={register}
               className="mt-4"
-              placeholder="What should we call you?"
+              placeholder="Create a username"
             />
             
             <Input
@@ -73,7 +88,7 @@ const RegisterPage: React.FC = () => {
               type="password"
               register={register}
               className="mt-4"
-              placeholder="Create a strong password"
+              placeholder="Create a password"
             />
 
             <button 

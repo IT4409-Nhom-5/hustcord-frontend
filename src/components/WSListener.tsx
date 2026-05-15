@@ -20,7 +20,15 @@ const WSListener: React.FC = () => {
 
     // Listen for events
     ws.on('MESSAGE_CREATE', (data: any) => {
-      dispatch(messageCreated(data));
+      // Chuẩn hóa dữ liệu nhận được từ Socket
+      const mappedMessage = {
+        ...data,
+        content: data.text,
+        authorId: data.userId,
+        recipientId: data.recipientId,
+        author: data.user || { username: 'User' }
+      };
+      dispatch(messageCreated(mappedMessage));
     });
 
     ws.on('MESSAGE_DELETE', (data: any) => {

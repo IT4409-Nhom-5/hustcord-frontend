@@ -28,36 +28,32 @@ const messageSlice = createSlice({
         state.list[index] = action.payload;
       }
     },
+    setMessages: (state, action: PayloadAction<Message[]>) => {
+      state.list = action.payload;
+    },
   },
 });
 
-export const { messageCreated, messageDeleted, messageUpdated } = messageSlice.actions;
+export const { messageCreated, messageDeleted, messageUpdated, setMessages } = messageSlice.actions;
 
 // Async actions
 export const createMessage = (targetId: string, payload: { content: string }, isDM: boolean = false) => async (dispatch: any, getState: any) => {
-  const user = getState().auth.user || { id: 'user-1', username: 'Guest' };
+  const user = getState().auth.user;
+  if (!user) return;
   
-  const newMessage: Message = {
-    id: Date.now().toString(),
-    channelId: isDM ? undefined : targetId,
-    authorId: user.id,
-    userId: isDM ? targetId : undefined, // Đối với DM, userId là ID của người nhận
-    content: payload.content,
-    author: user,
-    createdAt: new Date().toISOString(),
-  };
-
-  dispatch(messageCreated(newMessage));
-  
-  import('../../services/ws').then((module) => {
-    if (module.default.connected) {
-      const eventName = isDM ? 'DM_CREATE' : 'MESSAGE_CREATE';
-      module.default.emit(eventName, { 
-        [isDM ? 'userId' : 'channelId']: targetId, 
-        message: newMessage 
-      });
-    }
-  });
+  // Lưu trực tiếp vào Database qua API, Socket sẽ tự động lo việc hiển thị
+  try {
+    const api = (await import('../../services/api')).default;
+    await api.post('/messages', {
+      text: payload.content,
+      userId: user.id,
+      channelId: isDM ? undefined : targetId,
+      recipientId: isDM ? targetId : undefined,
+      images: []
+    });
+  } catch (error) {
+    console.error("Failed to save message to DB:", error);
+  }
 };
 
 export default messageSlice.reducer;

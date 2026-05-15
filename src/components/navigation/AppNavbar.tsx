@@ -40,10 +40,6 @@ const AppNavbar: React.FC = () => {
             <div className="hidden md:block w-[1px] h-6 bg-[#3f4147] mx-4"></div>
             <div className="hidden md:flex items-center gap-4 text-sm font-medium">
               <span className="text-white cursor-pointer px-2 py-0.5 rounded bg-[#3f4147]">Online</span>
-              <span className="text-[#b5bac1] hover:text-[#dbdee1] cursor-pointer">All</span>
-              <span className="text-[#b5bac1] hover:text-[#dbdee1] cursor-pointer">Pending</span>
-              <span className="text-[#b5bac1] hover:text-[#dbdee1] cursor-pointer">Blocked</span>
-              <span className="text-[#23a559] hover:bg-[#23a559]/10 cursor-pointer px-2 py-0.5 rounded">Add Friend</span>
             </div>
           </>
         ) : (

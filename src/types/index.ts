@@ -41,7 +41,8 @@ export interface Message {
   authorId: string;
   author?: User; // Thông tin người gửi (thường được backend populate chung khi fetch)
   channelId?: string;
-  userId?: string; // ID người nhận nếu là DM
+  userId?: string; // Tương đương authorId trong một số trường hợp backend
+  recipientId?: string; // ID người nhận nếu là DM
   createdAt: string;
   updatedAt?: string;
 }
