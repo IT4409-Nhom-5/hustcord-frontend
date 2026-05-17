@@ -4,6 +4,7 @@ import { useLocation, useParams } from 'react-router-dom';
 import TextareaAutosize from 'react-textarea-autosize';
 import { createMessage } from '../../store/slices/messageSlice';
 import { startTyping } from '../../store/slices/channelSlice';
+import EmojiPickerButton from './EmojiPickerButton';
 
 interface MessageBoxProps {
   channelId: string;
@@ -20,6 +21,10 @@ const MessageBox: React.FC<MessageBoxProps> = ({ channelId, channelName, typingU
   const isDM = location.pathname.startsWith('/channels/@me');
   const targetId = isDM ? userId : channelId;
   const placeholderName = isDM ? `@${channelName}` : `#${channelName || 'channel'}`;
+
+  const handleEmojiSelect = (emoji: string) => {
+    setContent((prev) => prev + emoji);
+  };
 
   const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (!targetId) return;
@@ -72,7 +77,7 @@ const MessageBox: React.FC<MessageBoxProps> = ({ channelId, channelName, typingU
         {/* Right Toolbar */}
         <div className="flex items-center space-x-1 px-2 py-2.5">
           <button className="p-1 text-[#b5bac1] hover:text-[#dbdee1] cursor-pointer" title="Send a gift">🎁</button>
-          <button className="p-1 text-[#b5bac1] hover:text-[#dbdee1] cursor-pointer" title="Select emoji">😀</button>
+          <EmojiPickerButton onEmojiSelect={handleEmojiSelect} />
         </div>
       </div>
       
