@@ -46,10 +46,10 @@ const LoginPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#5865f2] flex items-center justify-center p-4 relative overflow-hidden bg-[url('https://discord.com/assets/c40c84ca18d84633a9d86b4046a91437.svg')] bg-cover bg-center">
       
-      <div className="w-full max-w-[784px] bg-[#313338] rounded-lg shadow-2xl flex relative z-10 p-8 min-h-[400px]">
+      <div className="w-full max-w-[480px] bg-[#313338] rounded-lg shadow-2xl flex relative z-10 p-8 min-h-[400px]">
         
         {/* Cột Form Đăng Nhập */}
-        <div className="flex-1 pr-0 md:pr-8">
+        <div className="flex-1">
           <form onSubmit={handleSubmit(onSubmit)} className="w-full">
             <h1 className="text-2xl font-bold mb-2 text-center md:text-left text-white">Welcome back!</h1>
             <p className="text-[#b5bac1] text-center md:text-left mb-6 text-sm">We're so excited to see you again!</p>
@@ -98,22 +98,6 @@ const LoginPage: React.FC = () => {
               </Link>
             </p>
           </form>
-        </div>
-
-        {/* Cột QR Code*/}
-        <div className="hidden md:flex flex-col items-center justify-center w-[240px] border-l border-[#3f4147] pl-8">
-          <div className="w-44 h-44 bg-white rounded flex items-center justify-center p-2 mb-6">
-            {/* Fake QR Code */}
-            <div className="w-full h-full bg-[#313338] relative flex items-center justify-center">
-              <div className="absolute w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                 <div className="w-10 h-10 bg-[#5865f2] rounded-full"></div>
-              </div>
-            </div>
-          </div>
-          <h2 className="text-xl font-bold text-white mb-2 text-center">Log in with QR Code</h2>
-          <p className="text-[#b5bac1] text-sm text-center">
-            Scan this with the <strong>Discord mobile app</strong> to log in instantly.
-          </p>
         </div>
 
       </div>
