@@ -1,54 +1,79 @@
+import { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useAppSelector } from './hooks/useAppStore';
-import type { JSX } from 'react';
-// Pages
-import HomePage from './pages/HomePage';
-import LoginPage from './pages/LoginPage';
-import RegisterPage from './pages/RegisterPage';
-import GuildPage from './pages/GuildPage';
-import NotFoundPage from './pages/NotFoundPage';
-import OverviewPage from './pages/OverviewPage';
+import { useAuthStore } from '~/stores/auth.store';
+import { socketService } from '~/lib/socket/socket.service';
 
-// Private Route Guard
-const PrivateRoute = ({ children }: { children: JSX.Element }) => {
-  const token = useAppSelector((state) => state.auth.token);
-  return token ? children : <Navigate to="/login" />;
+// Pages
+import LoginPage from '~/pages/auth/LoginPage';
+import RegisterPage from '~/pages/auth/RegisterPage';
+import DashboardLayout from '~/layouts/DashboardLayout';
+import NotFoundPage from '~/pages/NotFoundPage';
+
+// Protected Route Component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const token = useAuthStore((state) => state.token);
+  return token ? children : <Navigate to="/login" replace />;
 };
 
-function App() {
-  const token = useAppSelector((state) => state.auth.token);
-  
+// Public Route Component
+const PublicRoute = ({ children }: { children: React.ReactNode }) => {
+  const token = useAuthStore((state) => state.token);
+  return !token ? children : <Navigate to="/channels/@me" replace />;
+};
+
+export default function App() {
+  const token = useAuthStore((state) => state.token);
+
+  useEffect(() => {
+    // Initialize socket connection when token is available
+    if (token) {
+      socketService.connect(token);
+      socketService.connectVideo(token);
+    }
+
+    return () => {
+      // Cleanup on unmount
+      socketService.removeAllListeners();
+    };
+  }, [token]);
+
   return (
     <Router>
       <Routes>
         {/* Public Routes */}
-        <Route path="/" element={token ? <Navigate to="/channels/@me" /> : <HomePage />} />
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        
-        {/* Private Routes */}
-        <Route 
-          path="/channels/@me/:userId?" 
+        <Route
+          path="/login"
           element={
-            <PrivateRoute>
-              <OverviewPage />
-            </PrivateRoute>
-          } 
+            <PublicRoute>
+              <LoginPage />
+            </PublicRoute>
+          }
         />
-        <Route 
-          path="/channels/:guildId/:channelId?" 
+        <Route
+          path="/register"
           element={
-            <PrivateRoute>
-              <GuildPage />
-            </PrivateRoute>
-          } 
+            <PublicRoute>
+              <RegisterPage />
+            </PublicRoute>
+          }
         />
 
-        {/* Fallback */}
+        {/* Protected Routes */}
+        <Route
+          path="/channels/*"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Redirects */}
+        <Route path="/" element={<Navigate to="/channels/@me" replace />} />
+
+        {/* 404 */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Router>
   );
 }
-
-export default App;

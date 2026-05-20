@@ -1,48 +1,67 @@
+// Auth Types
 export interface User {
   id: string;
-  username: string;
   email: string;
-  avatar?: string;
-  status?: 'ONLINE' | 'OFFLINE' | 'IDLE' | 'DND';
-  createdAt: string;
+  username: string;
+  about?: string;
+  image?: string;
+  friends?: string[];
+  blocked?: string[];
+  requests?: string[];
 }
 
-export const ChannelType = {
-  TEXT: 'TEXT',
-  VOICE: 'VOICE',
-  CATEGORY: 'CATEGORY'
-} as const;
+export interface AuthLoginRequest {
+  email: string;
+  password: string;
+}
 
-export type ChannelType = typeof ChannelType[keyof typeof ChannelType];
+export interface AuthRegisterRequest {
+  email: string;
+  username: string;
+  password: string;
+}
 
+export interface AuthResponse {
+  statusCode: string;
+  message?: string;
+  access_token: string;
+  user?: User;
+}
+
+// Channel Types
 export interface Channel {
-  id: string;
+  id?: string;
   name: string;
-  type: ChannelType;
-  guildId: string;
-  parentId?: string | null; // Dùng để xác định channel này thuộc Category nào
-  position?: number; // Thứ tự hiển thị
-  createdAt: string;
+  description?: string;
+  image?: string;
+  participants: string[];
+  admins?: string[];
 }
 
-export interface Guild {
-  id: string;
-  name: string;
-  icon?: string;
-  ownerId: string;
-  createdAt: string;
-  channels?: Channel[];
-  members?: User[];
-}
-
+// Message Types
 export interface Message {
-  id: string;
-  content: string;
-  authorId: string;
-  author?: User; // Thông tin người gửi (thường được backend populate chung khi fetch)
-  channelId?: string;
-  userId?: string; // Tương đương authorId trong một số trường hợp backend
-  recipientId?: string; // ID người nhận nếu là DM
-  createdAt: string;
+  id?: string;
+  channelId: string;
+  userId: string;
+  text: string;
+  images?: string[];
+  createdAt?: string;
   updatedAt?: string;
+  user?: {
+    id: string;
+    username: string;
+    image?: string;
+  };
 }
+
+// Video Types
+export interface VideoCall {
+  callId: string;
+  channelId: string;
+  callerId: string;
+  status: 'active' | 'ended' | 'missed';
+  participants: string[];
+  createdAt: string;
+  endedAt?: string;
+}
+

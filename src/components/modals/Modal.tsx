@@ -1,38 +1,32 @@
 import React, { type ReactNode } from 'react';
-import { useDispatch } from 'react-redux';
-import { closedModal } from '../../store/slices/uiSlice';
+import { useUIStore } from '~/stores/ui.store';
+import { X } from 'lucide-react';
 
 interface ModalProps {
   children: ReactNode;
   title: string;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-const Modal: React.FC<ModalProps> = ({ children, title }) => {
-  const dispatch = useDispatch();
-
-  const handleClose = () => {
-    dispatch(closedModal());
-  };
+const Modal: React.FC<ModalProps> = ({ children, title, isOpen, onClose }) => {
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/85 backdrop-blur-[2px]">
       <div 
-        className="bg-[#313338] w-full max-w-[440px] rounded-lg shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200"
-        onClick={(e) => e.stopPropagation()}
+        className="bg-gray-900 w-full max-w-[440px] rounded-lg shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200"
       >
-        {/* Header */}
-        <div className="px-4 py-3 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-white">{title}</h2>
-          <button 
-            onClick={handleClose}
-            className="text-[#b5bac1] hover:text-[#dbdee1] transition-colors"
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-800">
+          <h2 className="text-lg font-semibold text-white">{title}</h2>
+          <button
+            onClick={onClose}
+            className="p-1 hover:bg-gray-800 rounded transition text-gray-400 hover:text-white"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            <X className="w-5 h-5" />
           </button>
         </div>
-
-        {/* Content */}
-        <div className="px-4 py-2">
+        <div className="flex-1 overflow-y-auto">
           {children}
         </div>
       </div>
@@ -41,3 +35,4 @@ const Modal: React.FC<ModalProps> = ({ children, title }) => {
 };
 
 export default Modal;
+

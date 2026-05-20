@@ -1,126 +1,95 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import toast from 'react-hot-toast';
+import { useMutation } from '@tanstack/react-query';
 import Modal from './Modal';
-import { useAppDispatch, useAppSelector } from '../../hooks/useAppStore';
-import { channelCreated } from '../../store/slices/guildSlice';
-import { closedModal, openedModal } from '../../store/slices/uiSlice';
-import type { Channel } from '../../types';
-import api from '../../services/api';
+import { useUIStore } from '~/stores/ui.store';
+import { useChannelStore } from '~/stores/channel.store';
+import { channelAPI } from '~/lib/api/channel.api';
 
-const CreateChannelModal: React.FC = () => {
-  const dispatch = useAppDispatch();
-  const activeGuildId = useAppSelector((state) => state.ui.activeGuildId);
+const CreateChannelModal = () => {
+  const { createChannelModalOpen, setCreateChannelModalOpen } = useUIStore();
+  const { addChannel } = useChannelStore();
   const [name, setName] = useState('');
-  const [type, setType] = useState<'TEXT' | 'VOICE'>('TEXT');
+  const [description, setDescription] = useState('');
 
-  const [loading, setLoading] = useState(false);
+  const createChannelMutation = useMutation({
+    mutationFn: (data: { name: string; description: string }) =>
+      channelAPI.create(data),
+    onSuccess: (response) => {
+      if (response.data) {
+        addChannel(response.data);
+        toast.success('Channel created successfully!');
+        setCreateChannelModalOpen(false);
+        setName('');
+        setDescription('');
+      }
+    },
+    onError: (error: any) => {
+      const message = error.response?.data?.message || 'Failed to create channel';
+      toast.error(message);
+    },
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim() || !activeGuildId) {
-      if (!activeGuildId) alert("Please select a server first.");
+    if (!name.trim()) {
+      toast.error('Channel name is required');
       return;
     }
-
-    setLoading(true);
-    try {
-      // Gọi API tạo channel thật ở Backend
-      const response = await api.post('/channels', {
-        name: name.trim(),
-        description: `${type} channel in guild`,
-        participants: [], 
-        admins: [],
-        image: '',
-        guildId: activeGuildId
-      });
-
-      if (response.data.channel) {
-        const backendChannel = response.data.channel;
-        const formattedName = type === 'TEXT' 
-          ? name.trim().toLowerCase().replace(/\s+/g, '-')
-          : name.trim();
-
-        const newChannel: Channel = {
-          id: backendChannel.id, // Dùng ID thật từ Backend (là UUID)
-          name: formattedName,
-          type: type,
-          guildId: activeGuildId,
-          createdAt: backendChannel.createdAt
-        };
-
-        dispatch(channelCreated({ guildId: activeGuildId, channel: newChannel }));
-        dispatch(closedModal());
-      } else {
-        alert("Server returned success but no channel data.");
-      }
-    } catch (error: any) {
-      console.error("Failed to create channel in backend:", error);
-      const errorMsg = error.response?.data?.message || error.message || "Unknown error";
-      alert(`Failed to create channel: ${errorMsg}`);
-    } finally {
-      setLoading(false);
-    }
+    createChannelMutation.mutate({ name: name.trim(), description });
   };
 
   return (
-    <Modal title="Create Channel">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <Modal
+      title="Create Channel"
+      isOpen={createChannelModalOpen}
+      onClose={() => setCreateChannelModalOpen(false)}
+    >
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4 p-4">
         <div>
-          <label className="block text-xs font-bold text-[#b5bac1] uppercase mb-2">Channel Name</label>
-          <div className="relative">
-            <span className="absolute left-3 top-2 text-[#80848e] text-lg">
-              {type === 'TEXT' ? '#' : (
-                <svg className="w-5 h-5 mt-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0-9 9 9 9 0 0 0 9 9 9 9 0 0 0 9-9 9 9 0 0 0-9-9Zm0 16a7 7 0 1 1 0-14 7 7 0 0 1 0 14Zm-4-7a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm8 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/></svg>
-              )}
-            </span>
-            <input 
-              type="text" 
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={type === 'TEXT' ? "new-channel" : "General Voice"}
-              className="w-full bg-[#1e1f22] text-[#dbdee1] p-2 pl-10 rounded outline-none focus:ring-1 focus:ring-[#5865f2]"
-              autoFocus
-            />
-          </div>
+          <label className="block text-sm font-semibold text-gray-300 mb-2">
+            Channel Name
+          </label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="e.g. announcements"
+            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            autoFocus
+            disabled={createChannelMutation.isPending}
+          />
         </div>
 
-        <div className="flex flex-col gap-2">
-          <label className="block text-xs font-bold text-[#b5bac1] uppercase">Channel Type</label>
-          <div 
-            onClick={() => setType('TEXT')}
-            className={`p-3 rounded flex items-center cursor-pointer transition-colors ${type === 'TEXT' ? 'bg-[#3f4147] text-white' : 'hover:bg-[#35373c] text-[#b5bac1]'}`}
-          >
-            <span className="text-2xl mr-3">#</span>
-            <div className="flex flex-col">
-              <span className="font-semibold text-sm">Text</span>
-              <span className="text-xs opacity-70">Send messages, images, and emojis</span>
-            </div>
-          </div>
-          <div 
-            onClick={() => setType('VOICE')}
-            className={`p-3 rounded flex items-center cursor-pointer transition-colors ${type === 'VOICE' ? 'bg-[#3f4147] text-white' : 'hover:bg-[#35373c] text-[#b5bac1]'}`}
-          >
-            <span className="text-2xl mr-3">🔊</span>
-            <div className="flex flex-col">
-              <span className="font-semibold text-sm">Voice</span>
-              <span className="text-xs opacity-70">Hang out with voice, video, and screen share</span>
-            </div>
-          </div>
+        <div>
+          <label className="block text-sm font-semibold text-gray-300 mb-2">
+            Description (Optional)
+          </label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="What's this channel about?"
+            rows={3}
+            className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-md text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+            disabled={createChannelMutation.isPending}
+          />
         </div>
 
-        <div className="bg-[#2b2d31] -mx-4 p-4 mt-2 flex justify-end gap-3">
-          <button 
-            type="button" 
-            onClick={() => dispatch(closedModal())}
-            className="text-white text-sm font-medium hover:underline px-4 py-2"
+        <div className="flex justify-end gap-3 pt-4 border-t border-gray-700">
+          <button
+            type="button"
+            onClick={() => setCreateChannelModalOpen(false)}
+            className="px-4 py-2 text-gray-300 hover:text-white transition"
+            disabled={createChannelMutation.isPending}
           >
             Cancel
           </button>
-          <button 
+          <button
             type="submit"
-            disabled={loading}
-            className={`bg-[#5865f2] hover:bg-[#4752c4] text-white text-sm font-medium px-6 py-2 rounded transition-colors ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={createChannelMutation.isPending}
+            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md font-medium disabled:opacity-50 disabled:cursor-not-allowed transition"
           >
-            {loading ? "Creating..." : "Create Channel"}
+            {createChannelMutation.isPending ? 'Creating...' : 'Create Channel'}
           </button>
         </div>
       </form>
