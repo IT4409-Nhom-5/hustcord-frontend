@@ -6,7 +6,6 @@ import type { Guild } from '../../../types';
 
 const Sidebar: React.FC = () => {
   const dispatch = useAppDispatch();
-  const user = useAppSelector((state) => state.auth.user);
   const guilds = useAppSelector((state) => state.guilds.list);
 
   return (

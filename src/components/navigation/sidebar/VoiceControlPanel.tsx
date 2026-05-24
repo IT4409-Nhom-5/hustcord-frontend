@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../hooks/useAppStore';
-import { endCall, leaveVoiceChannel } from '../../../store/slices/uiSlice';
+import { leaveVoiceChannel } from '../../../store/slices/uiSlice';
 
 import { useCall } from '../../../context/CallContext';
 
@@ -9,7 +9,7 @@ const VoiceControlPanel: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const ui = useAppSelector((state) => state.ui);
-  const { isMuted, isDeafened, hangup, leaveVoiceRoom } = useCall();
+  const { isMuted, hangup, leaveVoiceRoom } = useCall();
   
   const { activeCall, activeVoiceChannel } = ui;
 

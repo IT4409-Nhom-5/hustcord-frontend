@@ -1,8 +1,9 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useLocation } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../hooks/useAppStore';
 import Message from './Message';
 import MessageBox from './MessageBox';
+import type { Message as MessageType } from '../../types';
 import { setMessages } from '../../store/slices/messageSlice';
 import api from '../../services/api';
 
@@ -10,6 +11,7 @@ const ChatArea: React.FC = () => {
   const { guildId, channelId } = useParams();
   const dispatch = useAppDispatch();
   const location = useLocation();
+  const [replyingTo, setReplyingTo] = useState<MessageType | null>(null);
   
   // Use null if no channel ID is in the URL yet to avoid invalid API calls
   const activeChannelId = channelId || null;
@@ -79,7 +81,13 @@ const ChatArea: React.FC = () => {
               content: m.text,
               authorId: m.userId,
               recipientId: m.recipientId,
-              author: m.user || { username: 'Unknown' }
+              author: m.user || { username: 'Unknown' },
+              parent: m.parent ? {
+                ...m.parent,
+                content: m.parent.text,
+                authorId: m.parent.userId,
+                author: m.parent.user || { username: 'Unknown' }
+              } : undefined
             }));
             dispatch(setMessages(mappedMessages));
           } else if (response) {
@@ -131,7 +139,7 @@ const ChatArea: React.FC = () => {
 
         {/* Render messages */}
         {messages.map((m) => (
-          <Message key={m.id} message={m} />
+          <Message key={m.id} message={m} onReply={setReplyingTo} />
         ))}
       </div>
 
@@ -140,6 +148,8 @@ const ChatArea: React.FC = () => {
         channelId={activeChannelId} 
         channelName={activeChannelName}
         typingUsers={typingUsers}
+        replyingTo={replyingTo}
+        onCancelReply={() => setReplyingTo(null)}
       />
     </main>
   );

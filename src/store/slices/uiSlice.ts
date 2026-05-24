@@ -44,7 +44,7 @@ const uiSlice = createSlice({
     leaveVoiceChannel: (state) => {
       state.activeVoiceChannel = null;
     },
-    focusedInvite: (state, action) => {
+    focusedInvite: () => {
       // state.activeInvite = action.payload; 
     },
     toggleDropdown: (state) => { 

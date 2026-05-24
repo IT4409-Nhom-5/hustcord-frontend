@@ -1,14 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useAppSelector, useAppDispatch } from '../../hooks/useAppStore';
-import { leaveVoiceChannel } from '../../store/slices/uiSlice';
-import type { Channel } from '../../types';
+import { useAppSelector } from '../../hooks/useAppStore';
 import { useCall } from '../../context/CallContext';
 import { useEffect, useRef } from 'react';
 
 const VoiceCallArea: React.FC = () => {
   const { channelId } = useParams<{ channelId: string }>();
-  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const ui = useAppSelector((state) => state.ui);
   const currentUser = useAppSelector((state) => state.auth.user);

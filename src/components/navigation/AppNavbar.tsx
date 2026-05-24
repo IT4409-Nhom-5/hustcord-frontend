@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLocation, useParams } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { useAppDispatch } from '../../hooks/useAppStore';
 import { startCall } from '../../store/slices/uiSlice';
 
@@ -69,12 +69,7 @@ const AppNavbar: React.FC = () => {
             >
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M17 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-3.5l4 4v-11l-4 4Z"/></svg>
             </button>
-            <button className="hover:text-[#dbdee1]" title="Pinned Messages">
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M16 9V4l1 1V2H7v2l1-1v5c0 1.66-1.34 3-3 3v2h5.97v7l1 1 1-1v-7H19v-2c-1.66 0-3-1.34-3-3Z"/></svg>
-            </button>
-            <button className="hover:text-[#dbdee1]" title="Add Friends to DM">
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M13 8c0-2.21-1.79-4-4-4S5 5.79 5 8s1.79 4 4 4 4-1.79 4-4Zm-2 0c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2ZM1 18v2h16v-2c0-2.66-5.33-4-8-4s-8 1.34-8 4Zm2 0c.2-1.1 3.11-2 6-2s5.8 1 6 2H3Zm16-3v-3h-3v-2h3V7h2v3h3v2h-3v3h-2Z"/></svg>
-            </button>
+
           </div>
         )}
 
@@ -82,7 +77,7 @@ const AppNavbar: React.FC = () => {
         {!isMePage && (
           <>
             <button className="hover:text-[#dbdee1]"><svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2Zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4a1.5 1.5 0 0 0-3 0v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2Z"/></svg></button>
-            <button className="hover:text-[#dbdee1]"><svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M14 8.005h4v2h-4v-2Zm-10 2h8v-2H4v2Zm10 4h4v2h-4v-2Zm-10 2h8v-2H4v2Zm0-12h16v2H4v-2Z"/></svg></button>
+    
           </>
         )}
         

@@ -35,6 +35,11 @@ export interface Guild {
   members?: User[];
 }
 
+export interface Reaction {
+  emoji: string;
+  users: { id: string; username: string }[];
+}
+
 export interface Message {
   id: string;
   content: string;
@@ -43,6 +48,11 @@ export interface Message {
   channelId?: string;
   userId?: string; // Tương đương authorId trong một số trường hợp backend
   recipientId?: string; // ID người nhận nếu là DM
+  images?: string[];
   createdAt: string;
   updatedAt?: string;
+  parentId?: string;
+  parent?: Message;
+  isRecalled?: boolean;
+  reactions?: Reaction[];
 }

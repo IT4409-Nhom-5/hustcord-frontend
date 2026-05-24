@@ -5,31 +5,97 @@ import { useAppDispatch, useAppSelector } from '../hooks/useAppStore';
 import ws from '../services/ws';
 import { messageCreated, messageDeleted, messageUpdated } from '../store/slices/messageSlice';
 import { userTyped, userStoppedTyping } from '../store/slices/channelSlice';
-import { channelCreated, channelDeleted, created, deleted } from '../store/slices/guildSlice';
+import { channelCreated, channelDeleted, created, deleted, setGuilds } from '../store/slices/guildSlice';
+import api from '../services/api';
 
 const WSListener: React.FC = () => {
   const dispatch = useAppDispatch();
   const hasListenedToWS = useAppSelector((state) => state.meta.hasListenedToWS);
   const auth = useAppSelector((state) => state.auth);
-  const ui = useAppSelector((state) => state.ui);
 
   useEffect(() => {
     if (!auth.token || hasListenedToWS) return;
+
+    const fetchGuildsData = async () => {
+      try {
+        const response = await api.get(`/channels/user/${auth.user?.id}`);
+        if (response.data && response.data.generalChannels) {
+          const { generalChannels, subChannels } = response.data;
+          
+          const mappedGuilds = generalChannels.map((gc: any) => {
+            const guildId = gc.guildId || gc.id;
+            
+            const guildSubChannels = (subChannels || [])
+              .filter((sc: any) => sc.guildId === guildId)
+              .map((sc: any) => {
+                const isVoice = sc.description?.includes('VOICE') || sc.name.includes('voice');
+                return {
+                  id: sc.id,
+                  name: sc.name,
+                  type: isVoice ? ('VOICE' as const) : ('TEXT' as const),
+                  guildId: guildId,
+                  createdAt: sc.createdAt || sc.updatedAt
+                };
+              });
+
+            const generalChannel = {
+              id: gc.id,
+              name: 'general',
+              type: 'TEXT' as const,
+              guildId: guildId,
+              createdAt: gc.createdAt || gc.updatedAt
+            };
+
+            const members = (gc.participants || []).map((p: any) => ({
+              id: p.id,
+              username: p.username,
+              email: p.email,
+              avatar: p.image || undefined,
+              createdAt: p.createdAt
+            }));
+
+            return {
+              id: guildId,
+              name: gc.name,
+              ownerId: gc.admins?.[0] || '',
+              createdAt: gc.createdAt || gc.updatedAt,
+              channels: [generalChannel, ...guildSubChannels],
+              members: members
+            };
+          });
+
+          dispatch(setGuilds(mappedGuilds));
+        }
+      } catch (err) {
+        console.error("Failed to fetch user guilds/channels:", err);
+      }
+    };
+
+    fetchGuildsData();
+
+    const mapMessage = (data: any) => {
+      if (!data) return data;
+      return {
+        ...data,
+        content: data.text,
+        authorId: data.userId,
+        recipientId: data.recipientId,
+        author: data.user || { username: 'User' },
+        parent: data.parent ? {
+          ...data.parent,
+          content: data.parent.text,
+          authorId: data.parent.userId,
+          author: data.parent.user || { username: 'User' }
+        } : undefined
+      };
+    };
 
     // Connect to WebSocket
     ws.connect();
 
     // Listen for events
     ws.on('MESSAGE_CREATE', (data: any) => {
-      // Chuẩn hóa dữ liệu nhận được từ Socket
-      const mappedMessage = {
-        ...data,
-        content: data.text,
-        authorId: data.userId,
-        recipientId: data.recipientId,
-        author: data.user || { username: 'User' }
-      };
-      dispatch(messageCreated(mappedMessage));
+      dispatch(messageCreated(mapMessage(data)));
     });
 
     ws.on('MESSAGE_DELETE', (data: any) => {
@@ -37,7 +103,7 @@ const WSListener: React.FC = () => {
     });
 
     ws.on('MESSAGE_UPDATE', (data: any) => {
-      dispatch(messageUpdated(data));
+      dispatch(messageUpdated(mapMessage(data)));
     });
 
     ws.on('TYPING_START', (data: any) => {

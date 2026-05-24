@@ -259,7 +259,7 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     });
 
-    socket.on('video-call', (data: { from: string, type: 'voice' | 'video', callId: string }) => {
+    socket.on('incoming-call', (data: { from: string, type: 'voice' | 'video', callId: string }) => {
       dispatch(setIncomingCall(data));
     });
 
@@ -293,14 +293,14 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       socket.emit('voice-signal', { to: data.from, from: currentUser.id, signal: offer });
     });
 
-    socket.on('call-rejected', (data: { callId: string }) => {
+    socket.on('call-rejected', (_data: { callId: string }) => {
       console.log(">>> [RECV] Call rejected");
       dispatch(clearIncomingCall());
       dispatch(endCall());
       cleanup();
     });
 
-    socket.on('end-call', (data: { callId: string }) => {
+    socket.on('call-ended', (_data: { callId: string }) => {
       console.log(">>> [RECV] Call ended");
       dispatch(endCall());
       cleanup();
@@ -509,7 +509,7 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     joiningRef.current = channelId;
     
     try {
-      const stream = await initMedia('voice');
+      await initMedia('voice');
       
       if (socketRef.current && currentUser) {
         socketRef.current.emit('join-voice', { channelId, userId: currentUser.id, username: currentUser.username });

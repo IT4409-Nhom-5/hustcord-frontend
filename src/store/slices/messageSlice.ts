@@ -37,11 +37,10 @@ const messageSlice = createSlice({
 export const { messageCreated, messageDeleted, messageUpdated, setMessages } = messageSlice.actions;
 
 // Async actions
-export const createMessage = (targetId: string, payload: { content: string }, isDM: boolean = false) => async (dispatch: any, getState: any) => {
+export const createMessage = (targetId: string, payload: { content: string; images?: string[]; parentId?: string }, isDM: boolean = false) => async (_dispatch: any, getState: any) => {
   const user = getState().auth.user;
   if (!user) return;
   
-  // Lưu trực tiếp vào Database qua API, Socket sẽ tự động lo việc hiển thị
   try {
     const api = (await import('../../services/api')).default;
     await api.post('/messages', {
@@ -49,10 +48,29 @@ export const createMessage = (targetId: string, payload: { content: string }, is
       userId: user.id,
       channelId: isDM ? undefined : targetId,
       recipientId: isDM ? targetId : undefined,
-      images: []
+      images: payload.images || [],
+      parentId: payload.parentId
     });
   } catch (error) {
     console.error("Failed to save message to DB:", error);
+  }
+};
+
+export const deleteMessage = (messageId: string) => async () => {
+  try {
+    const api = (await import('../../services/api')).default;
+    await api.delete(`/messages/${messageId}`);
+  } catch (error) {
+    console.error("Failed to delete/recall message:", error);
+  }
+};
+
+export const toggleReaction = (messageId: string, emoji: string) => async () => {
+  try {
+    const api = (await import('../../services/api')).default;
+    await api.post(`/messages/${messageId}/react`, { emoji });
+  } catch (error) {
+    console.error("Failed to toggle reaction:", error);
   }
 };
 

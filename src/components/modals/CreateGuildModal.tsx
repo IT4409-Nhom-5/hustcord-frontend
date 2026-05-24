@@ -4,6 +4,7 @@ import Modal from './Modal';
 import { created } from '../../store/slices/guildSlice';
 import { closedModal } from '../../store/slices/uiSlice';
 import type { Guild } from '../../types';
+import api from '../../services/api';
 
 const CreateGuildModal: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -17,7 +18,6 @@ const CreateGuildModal: React.FC = () => {
 
     setLoading(true);
     try {
-      const api = (await import('../../services/api')).default;
       const guildId = crypto.randomUUID(); 
 
       const response = await api.post('/channels', {

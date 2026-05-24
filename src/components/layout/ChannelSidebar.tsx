@@ -18,7 +18,7 @@ interface ChannelItemProps {
   onDelete?: (e: React.MouseEvent) => void;
 }
 
-const ChannelItem: React.FC<ChannelItemProps> = ({ id, name, active, type = 'TEXT', to, onClick, onDelete }) => {
+const ChannelItem: React.FC<ChannelItemProps> = ({ id: _id, name, active, type = 'TEXT', to, onClick, onDelete }) => {
   const content = (
     <div 
       onClick={onClick}

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import Modal from './Modal';
 import { useAppDispatch, useAppSelector } from '../../hooks/useAppStore';
 import { channelCreated } from '../../store/slices/guildSlice';
-import { closedModal, openedModal } from '../../store/slices/uiSlice';
+import { closedModal } from '../../store/slices/uiSlice';
 import type { Channel } from '../../types';
 import api from '../../services/api';
 
