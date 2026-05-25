@@ -1,16 +1,19 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import type { Guild, Channel, User } from '../../types';
+import { logout } from './authSlice';
 
 interface GuildState {
   list: Guild[];
   activeGuildId: string | null;
   loading: boolean;
+  loaded: boolean;
 }
 
 const initialState: GuildState = {
   list: [],
   activeGuildId: null,
   loading: false,
+  loaded: false,
 };
 
 const guildSlice = createSlice({
@@ -19,6 +22,12 @@ const guildSlice = createSlice({
   reducers: {
     setGuilds: (state, action: PayloadAction<Guild[]>) => {
       state.list = action.payload;
+      state.loaded = true;
+      state.loading = false;
+    },
+    fetchGuildsStart: (state) => {
+      state.loading = true;
+      state.loaded = false;
     },
     setActiveGuild: (state, action: PayloadAction<string>) => {
       state.activeGuildId = action.payload;
@@ -69,10 +78,19 @@ const guildSlice = createSlice({
       }
     },
   },
+  extraReducers: (builder) => {
+    builder.addCase(logout, (state) => {
+      state.list = [];
+      state.activeGuildId = null;
+      state.loading = false;
+      state.loaded = false;
+    });
+  },
 });
 
 export const { 
   setGuilds, setActiveGuild, channelCreated, channelDeleted, 
-  memberAdded, memberRemoved, inviteCreated, created, deleted, updated 
+  memberAdded, memberRemoved, inviteCreated, created, deleted, updated,
+  fetchGuildsStart
 } = guildSlice.actions;
 export default guildSlice.reducer;

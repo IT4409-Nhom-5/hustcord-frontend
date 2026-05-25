@@ -27,7 +27,7 @@ const SidebarContent: React.FC = () => {
       {/* Header */}
       <div className="h-12 flex items-center px-4 shadow-[0_1px_2px_rgba(0,0,0,0.2)] shrink-0 hover:bg-[#3f4147] cursor-pointer transition-colors">
         <span className="font-semibold text-white truncate w-full">
-          {isMePage ? 'Start a conversation' : (activeGuild?.name || 'HustCord Server')}
+          {isMePage ? 'Start a conversation' : (activeGuild?.name || 'Loading...')}
         </span>
       </div>
 

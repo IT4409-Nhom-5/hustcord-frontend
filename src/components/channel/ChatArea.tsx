@@ -6,6 +6,7 @@ import MessageBox from './MessageBox';
 import type { Message as MessageType } from '../../types';
 import { setMessages } from '../../store/slices/messageSlice';
 import api from '../../services/api';
+import UserAvatar from '../user/UserAvatar';
 
 const ChatArea: React.FC = () => {
   const { guildId, channelId } = useParams();
@@ -18,7 +19,9 @@ const ChatArea: React.FC = () => {
   
   const isDM = location.pathname.startsWith('/channels/@me');
   const { userId } = useParams();
-  const friendName = userId === '550e8400-e29b-41d4-a716-446655440000' ? 'Wumpus' : userId === '550e8400-e29b-41d4-a716-446655440001' ? 'Clyde' : 'Friend';
+  const friends = useAppSelector((state) => state.auth.friends) || [];
+  const currentFriend = friends.find((f: any) => f.id === userId);
+  const friendName = currentFriend?.username || (userId === '550e8400-e29b-41d4-a716-446655440000' ? 'Wumpus' : userId === '550e8400-e29b-41d4-a716-446655440001' ? 'Clyde' : 'Friend');
   const guilds = useAppSelector((state) => state.guilds.list);
   const activeGuildId = guildId || useAppSelector((state) => state.ui.activeGuildId);
   const activeGuild = guilds.find((g) => g.id === activeGuildId);
@@ -118,11 +121,13 @@ const ChatArea: React.FC = () => {
       <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 custom-scrollbar flex flex-col justify-start">
         {/* Lời chào đầu kênh/DM */}
         <div className="mt-4 mb-4 mt-auto">
-          <div className="w-[68px] h-[68px] bg-[#41434a] rounded-full flex items-center justify-center mb-4">
+          <div className="mb-4">
             {isDM ? (
-              <div className="w-full h-full bg-gray-500 rounded-full"></div>
+              <UserAvatar user={currentFriend || { username: friendName }} size="xl" />
             ) : (
-              <span className="text-4xl text-white">#</span>
+              <div className="w-[68px] h-[68px] bg-[#41434a] rounded-full flex items-center justify-center">
+                <span className="text-4xl text-white">#</span>
+              </div>
             )}
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">

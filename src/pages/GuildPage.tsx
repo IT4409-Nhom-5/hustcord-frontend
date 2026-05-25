@@ -14,7 +14,7 @@ const GuildPage: React.FC = () => {
   const { guildId, channelId } = useParams();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const guilds = useAppSelector((state) => state.guilds.list);
+  const { list: guilds, loaded } = useAppSelector((state) => state.guilds);
   
   const activeGuild = guilds.find(g => g.id === guildId);
 
@@ -25,10 +25,22 @@ const GuildPage: React.FC = () => {
     }
   }, [guildId, dispatch]);
 
-  // Redirect to first channel if none is selected or ID is invalid
+  // Chuyển hướng về trang chủ tin nhắn nếu Server không tồn tại trong danh sách (sau khi đã tải xong)
+  useEffect(() => {
+    if (loaded && guildId) {
+      const activeGuildExists = guilds.some(g => g.id === guildId);
+      if (!activeGuildExists) {
+        navigate('/channels/@me', { replace: true });
+      }
+    }
+  }, [loaded, guildId, guilds, navigate]);
+
+  // Redirect to first channel if none is selected, or ID is invalid, or channel is not found in activeGuild's channels
   useEffect(() => {
     const isUUID = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-    const isInvalidChannel = !channelId || !isUUID(channelId);
+    
+    const isChannelNotFound = activeGuild && channelId && isUUID(channelId) && !activeGuild.channels?.some(c => c.id === channelId);
+    const isInvalidChannel = !channelId || !isUUID(channelId) || isChannelNotFound;
 
     if (activeGuild && isInvalidChannel && activeGuild.channels && activeGuild.channels.length > 0) {
       // Tìm channel text đầu tiên hoặc channel bất kỳ

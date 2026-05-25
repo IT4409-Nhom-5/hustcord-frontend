@@ -5,7 +5,7 @@ import { useAppDispatch, useAppSelector } from '../hooks/useAppStore';
 import ws from '../services/ws';
 import { messageCreated, messageDeleted, messageUpdated } from '../store/slices/messageSlice';
 import { userTyped, userStoppedTyping } from '../store/slices/channelSlice';
-import { channelCreated, channelDeleted, created, deleted, setGuilds } from '../store/slices/guildSlice';
+import { channelCreated, channelDeleted, created, deleted, setGuilds, fetchGuildsStart } from '../store/slices/guildSlice';
 import api from '../services/api';
 
 const WSListener: React.FC = () => {
@@ -18,6 +18,7 @@ const WSListener: React.FC = () => {
 
     const fetchGuildsData = async () => {
       try {
+        dispatch(fetchGuildsStart());
         const response = await api.get(`/channels/user/${auth.user?.id}`);
         if (response.data && response.data.generalChannels) {
           const { generalChannels, subChannels } = response.data;
@@ -90,6 +91,19 @@ const WSListener: React.FC = () => {
       };
     };
 
+    const registerSocket = () => {
+      console.log('📡 Main WS connected, registering user ID:', auth.user?.id);
+      if (auth.user?.id) {
+        ws.emit('register', auth.user.id);
+      }
+    };
+
+    if (ws.connected) {
+      registerSocket();
+    }
+
+    ws.on('connect', registerSocket);
+
     // Connect to WebSocket
     ws.connect();
 
@@ -154,6 +168,7 @@ const WSListener: React.FC = () => {
     });
 
     return () => {
+      ws.off('connect');
       ws.off('MESSAGE_CREATE');
       ws.off('MESSAGE_DELETE');
       ws.off('MESSAGE_UPDATE');

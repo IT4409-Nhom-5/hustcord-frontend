@@ -7,6 +7,7 @@ import { channelDeleted, deleted as deleteGuild } from '../../store/slices/guild
 import { useCall } from '../../context/CallContext';
 import api from '../../services/api';
 import VoiceControlPanel from '../navigation/sidebar/VoiceControlPanel';
+import UserAvatar from '../user/UserAvatar';
 
 interface ChannelItemProps {
   id: string;
@@ -69,9 +70,7 @@ const UserPanel: React.FC = () => {
         className="flex items-center hover:bg-[#3f4147] p-1 rounded-md cursor-pointer transition-colors group flex-1 min-w-0 mr-1"
       >
         <div className="relative shrink-0">
-            <div className="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center text-xs font-bold text-white">
-                {user?.username?.charAt(0).toUpperCase() || 'U'}
-            </div>
+            <UserAvatar user={user} size="md" />
             <div className={`absolute bottom-0 right-0 w-3 h-3 border-[3px] border-[#232428] rounded-full transition-colors ${isOnline ? 'bg-[#23a55a]' : 'bg-[#747f8d]'}`} />
         </div>
         <div className="ml-2 text-xs flex-1 min-w-0">
@@ -261,7 +260,7 @@ const ChannelSidebar: React.FC = () => {
       {/* Header */}
       <div className="h-12 border-b border-[#1e1f22] flex items-center justify-between px-4 shadow-sm font-bold text-white hover:bg-[#3f4147] cursor-pointer transition-colors shrink-0 group/header">
         <span className="truncate flex-1">
-          {isMePage ? 'Start a conversation' : (activeGuild?.name || 'HustCord Server')}
+          {isMePage ? 'Start a conversation' : (activeGuild?.name || 'Loading...')}
         </span>
         {!isMePage && activeGuild && (
           <button 
@@ -303,8 +302,8 @@ const ChannelSidebar: React.FC = () => {
                 to={`/channels/@me/${friend?.id}`}
                 className={`flex items-center px-2 py-1.5 rounded hover:bg-[#35373c] text-[#80848e] hover:text-[#dbdee1] cursor-pointer group ${location.pathname === `/channels/@me/${friend?.id}` ? 'bg-[#3f4147] text-white' : ''}`}
               >
-                <div className="w-8 h-8 rounded-full bg-indigo-500 mr-3 relative shrink-0 flex items-center justify-center text-xs font-bold text-white">
-                  {friend?.username?.charAt(0).toUpperCase() || '?'}
+                <div className="mr-3 relative shrink-0">
+                  <UserAvatar user={friend} size="md" />
                   <div className="absolute bottom-0 right-0 w-3 h-3 border-2 border-[#2b2d31] rounded-full group-hover:border-[#35373c] bg-[#23a559]"></div>
                 </div>
                 <span className="font-medium truncate">{friend?.username || 'Unknown User'}</span>

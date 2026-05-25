@@ -3,6 +3,7 @@ import type { Message as MessageType } from '../../types';
 import { useAppDispatch, useAppSelector } from '../../hooks/useAppStore';
 import { deleteMessage, toggleReaction } from '../../store/slices/messageSlice';
 import EmojiPicker, { Theme, type EmojiClickData } from 'emoji-picker-react';
+import UserAvatar from '../user/UserAvatar';
 
 interface MessageProps {
   message: MessageType;
@@ -97,13 +98,7 @@ const Message: React.FC<MessageProps> = ({ message, onReply }) => {
 
       <div className="flex items-start">
         {/* Avatar */}
-        <div className="w-10 h-10 rounded-full flex-shrink-0 mt-0.5 cursor-pointer hover:shadow-lg transition-all overflow-hidden bg-[#5865f2] flex items-center justify-center text-white font-bold">
-          {message.author?.avatar ? (
-            <img src={message.author.avatar} alt="Avatar" className="w-full h-full object-cover" />
-          ) : (
-            (message.author?.username || '?').charAt(0).toUpperCase()
-          )}
-        </div>
+        <UserAvatar user={message.author} size="xlg" className="mt-0.5 cursor-pointer hover:shadow-lg transition-all" />
         
         {/* Nội dung tin nhắn */}
         <div className="ml-4 flex-1 min-w-0">

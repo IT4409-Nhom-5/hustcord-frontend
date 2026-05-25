@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAppSelector } from '../../../hooks/useAppStore';
+import UserAvatar from '../../user/UserAvatar';
 
 const MemberList: React.FC = () => {
   const friends = useAppSelector((state) => state.auth.friends);
@@ -19,13 +20,7 @@ const MemberList: React.FC = () => {
         {displayUsers.map((user: any) => (
           <div key={user.id} className="flex items-center px-2 py-1.5 hover:bg-[#35373c] rounded cursor-pointer group mb-[2px]">
             <div className="relative">
-              <div className="w-8 h-8 rounded-full bg-[#5865f2] flex items-center justify-center text-white font-medium overflow-hidden">
-                {user.avatarURL ? (
-                  <img src={user.avatarURL} alt="Avatar" className="w-full h-full object-cover" />
-                ) : (
-                  user.username.charAt(0)
-                )}
-              </div>
+              <UserAvatar user={user} size="md" />
               <div className={`absolute bottom-0 right-0 w-3.5 h-3.5 border-[2.5px] border-[#2b2d31] rounded-full group-hover:border-[#35373c] ${user.status === 'offline' ? 'bg-[#80848e]' : 'bg-[#23a559]'}`}></div>
             </div>
             <span className="ml-3 font-medium text-[#949ba4] group-hover:text-[#dbdee1] truncate">

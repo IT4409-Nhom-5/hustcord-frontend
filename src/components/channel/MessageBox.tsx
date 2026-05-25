@@ -208,10 +208,6 @@ const MessageBox: React.FC<MessageBoxProps> = ({
         </div>
       </div>
       
-      {/* Typing Indicator Area */}
-      <div className="h-4 mt-1 px-1 text-xs font-semibold text-[#dbdee1]">
-        {getTypingText()}
-      </div>
     </div>
   );
 };

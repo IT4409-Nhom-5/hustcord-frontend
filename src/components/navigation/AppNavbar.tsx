@@ -1,11 +1,18 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import { useAppDispatch } from '../../hooks/useAppStore';
+import { useAppDispatch, useAppSelector } from '../../hooks/useAppStore';
 import { startCall } from '../../store/slices/uiSlice';
+import UserAvatar from '../user/UserAvatar';
 
-const AppNavbar: React.FC = () => {
+interface AppNavbarProps {
+  activeTab?: 'all' | 'pending' | 'blocked' | 'add_friend';
+  setActiveTab?: (tab: 'all' | 'pending' | 'blocked' | 'add_friend') => void;
+}
+
+const AppNavbar: React.FC<AppNavbarProps> = ({ activeTab = 'all', setActiveTab }) => {
   const dispatch = useAppDispatch();
   const location = useLocation();
+  const friends = useAppSelector((state) => state.auth.friends) || [];
   
   // Lấy userId trực tiếp từ pathname (vd: /channels/@me/1 -> userId = 1)
   const pathParts = location.pathname.split('/');
@@ -14,8 +21,9 @@ const AppNavbar: React.FC = () => {
   
   const isDM = isMePage && userIdFromPath;
 
-  // Fake data for friend name in DM
-  const friendName = userIdFromPath === '1' ? 'Wumpus' : userIdFromPath === '2' ? 'Clyde' : 'Friend';
+  // Lấy thông tin bạn bè thật từ store
+  const currentFriend = friends.find((f: any) => f.id === userIdFromPath);
+  const friendName = currentFriend?.username || (userIdFromPath === '1' ? 'Wumpus' : userIdFromPath === '2' ? 'Clyde' : 'Friend');
 
   const handleStartCall = (type: 'voice' | 'video') => {
     if (userIdFromPath) {
@@ -24,22 +32,45 @@ const AppNavbar: React.FC = () => {
   };
 
   return (
-    <div className="h-12 border-b border-[#1e1f22] flex items-center justify-between px-4 bg-[#313338] shrink-0">
+    <div className="h-12 border-b border-[#1e1f22] flex items-center justify-between px-4 bg-[#313338] shrink-0 select-none">
       {/* Left section: Title */}
       <div className="flex items-center text-white min-w-0">
         {isDM ? (
           <>
-            <div className="w-6 h-6 rounded-full bg-gray-500 mr-2 flex-shrink-0"></div>
+            <UserAvatar user={currentFriend || { username: friendName }} size="sm" className="mr-2" />
             <span className="font-semibold text-base truncate">{friendName}</span>
             <div className="ml-2 w-3 h-3 bg-[#23a559] border-2 border-[#313338] rounded-full"></div>
           </>
         ) : isMePage ? (
           <>
-            <svg className="w-6 h-6 mr-2 text-[#80848e]" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0-2a3 3 0 1 1 0-6 3 3 0 0 1 0 6Zm9 11a1 1 0 0 1-2 0c0-2.33-2.33-4-5-4H10c-2.67 0-5 1.67-5 4a1 1 0 1 1-2 0c0-3.33 3.33-6 7-6h4c3.67 0 7 2.67 7 6Z"/></svg>
-            <span className="font-semibold text-base">Friends</span>
-            <div className="hidden md:block w-[1px] h-6 bg-[#3f4147] mx-4"></div>
+            <svg className="w-6 h-6 mr-2 text-[#80848e] shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 12a5 5 0 1 0 0-10 5 5 0 0 0 0 10Zm0-2a3 3 0 1 1 0-6 3 3 0 0 1 0 6Zm9 11a1 1 0 0 1-2 0c0-2.33-2.33-4-5-4H10c-2.67 0-5 1.67-5 4a1 1 0 1 1-2 0c0-3.33 3.33-6 7-6h4c3.67 0 7 2.67 7 6Z"/></svg>
+            <span className="font-semibold text-base shrink-0">Friends</span>
+            <div className="hidden md:block w-[1px] h-6 bg-[#3f4147] mx-4 shrink-0"></div>
             <div className="hidden md:flex items-center gap-4 text-sm font-medium">
-              <span className="text-white cursor-pointer px-2 py-0.5 rounded bg-[#3f4147]">Online</span>
+              <button 
+                onClick={() => setActiveTab?.('all')}
+                className={`cursor-pointer px-2 py-0.5 rounded transition-colors ${activeTab === 'all' ? 'bg-[#3f4147] text-[#f2f3f5]' : 'text-[#b5bac1] hover:bg-[#35373c] hover:text-[#dbdee1]'}`}
+              >
+                All
+              </button>
+              <button 
+                onClick={() => setActiveTab?.('pending')}
+                className={`cursor-pointer px-2 py-0.5 rounded transition-colors ${activeTab === 'pending' ? 'bg-[#3f4147] text-[#f2f3f5]' : 'text-[#b5bac1] hover:bg-[#35373c] hover:text-[#dbdee1]'}`}
+              >
+                Pending
+              </button>
+              <button 
+                onClick={() => setActiveTab?.('blocked')}
+                className={`cursor-pointer px-2 py-0.5 rounded transition-colors ${activeTab === 'blocked' ? 'bg-[#3f4147] text-[#f2f3f5]' : 'text-[#b5bac1] hover:bg-[#35373c] hover:text-[#dbdee1]'}`}
+              >
+                Blocked
+              </button>
+              <button 
+                onClick={() => setActiveTab?.('add_friend')}
+                className={`cursor-pointer px-2 py-0.5 rounded transition-colors font-medium ${activeTab === 'add_friend' ? 'text-[#23a55a] bg-transparent' : 'bg-[#248046] hover:bg-[#1a6535] text-white'}`}
+              >
+                Add Friend
+              </button>
             </div>
           </>
         ) : (
