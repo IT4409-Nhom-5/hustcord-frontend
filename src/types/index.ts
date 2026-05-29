@@ -4,6 +4,8 @@ export interface User {
   email: string;
   avatar?: string;
   status?: 'ONLINE' | 'OFFLINE' | 'IDLE' | 'DND';
+  role?: 'admin' | 'user';
+  isBanned?: boolean;
   createdAt: string;
 }
 

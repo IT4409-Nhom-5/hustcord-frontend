@@ -60,6 +60,7 @@ const ChannelItem: React.FC<ChannelItemProps> = ({ id: _id, name, active, type =
 const UserPanel: React.FC = () => {
   const user = useAppSelector((state) => state.auth.user);
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const { isMuted, isDeafened, toggleMute, toggleDeafen } = useCall();
   const [isOnline, setIsOnline] = useState(true);
   
@@ -84,6 +85,17 @@ const UserPanel: React.FC = () => {
       </div>
       
       <div className="flex items-center gap-0.5 shrink-0">
+        {user?.role === 'admin' && (
+          <button 
+            onClick={() => navigate('/admin')}
+            className="w-8 h-8 flex items-center justify-center rounded hover:bg-[#3f4147] transition-all active:scale-90 text-[#5865f2] hover:text-[#4752c4]" 
+            title="Admin Dashboard"
+          >
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 6c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 12c-2.7 0-5.8-1.59-6-3 .2-1.41 3.3-3 6-3s5.8 1.59 6 3c-.2 1.41-3.3 3-6 3z"/>
+            </svg>
+          </button>
+        )}
         <button 
           onClick={(e) => {
             e.stopPropagation();

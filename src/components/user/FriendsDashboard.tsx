@@ -7,7 +7,6 @@ import UserAvatar from './UserAvatar';
 import { 
   Search, 
   MessageSquare, 
-  UserX, 
   UserCheck, 
   UserX as DeclineIcon, 
   UserPlus, 
@@ -27,7 +26,7 @@ interface FriendsDashboardProps {
   setActiveTab: (tab: 'all' | 'pending' | 'blocked' | 'add_friend') => void;
 }
 
-const FriendsDashboard: React.FC<FriendsDashboardProps> = ({ activeTab, setActiveTab }) => {
+const FriendsDashboard: React.FC<FriendsDashboardProps> = ({ activeTab, setActiveTab: _ }) => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const currentUser = useAppSelector((state) => state.auth.user);
@@ -46,10 +45,10 @@ const FriendsDashboard: React.FC<FriendsDashboardProps> = ({ activeTab, setActiv
 
   const autocompleteRef = useRef<HTMLDivElement>(null);
 
-  // Helper to extract avatar image
-  const getAvatar = (user: any) => {
-    return user?.avatarURL || user?.avatar || user?.image || '';
-  };
+  // Helper to extract avatar image (unused - UserAvatar handles it)
+  // const getAvatar = (user: any) => {
+  //   return user?.avatarURL || user?.avatar || user?.image || '';
+  // };
 
   // Close suggestions dropdown when clicking outside
   useEffect(() => {
@@ -264,7 +263,7 @@ const FriendsDashboard: React.FC<FriendsDashboardProps> = ({ activeTab, setActiv
 
   // Helper to render status indicator
   const renderStatusDot = (status?: string) => {
-    const s = status?.toUpperCase() || 'OFFLINE';
+    const s = status?.toUpperCase() || 'ONLINE';
     switch (s) {
       case 'ONLINE':
         return <div className="w-3.5 h-3.5 bg-[#23a55a] rounded-full border-2 border-[#313338]" title="Online" />;
@@ -273,7 +272,7 @@ const FriendsDashboard: React.FC<FriendsDashboardProps> = ({ activeTab, setActiv
       case 'DND':
         return <div className="w-3.5 h-3.5 bg-[#f23f43] rounded-full border-2 border-[#313338]" title="Do Not Disturb" />;
       default:
-        return <div className="w-3.5 h-3.5 bg-[#80848e] rounded-full border-2 border-[#313338]" title="Offline" />;
+        return <div className="w-3.5 h-3.5 bg-[#80848e] rounded-full border-2 border-[#313338]" title="Online" />;
     }
   };
 
@@ -359,7 +358,7 @@ const FriendsDashboard: React.FC<FriendsDashboardProps> = ({ activeTab, setActiv
                             {friend.username}
                           </span>
                           <span className="text-xs text-[#949ba4] block truncate">
-                            {friend.status?.toUpperCase() !== 'OFFLINE' ? (friend.status?.toLowerCase() || 'online') : 'offline'}
+                            {friend.status?.toUpperCase() !== 'OFFLINE' ? (friend.status?.toLowerCase() || 'Online') : 'Offline'}
                           </span>
                         </div>
                       </div>

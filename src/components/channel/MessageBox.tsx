@@ -208,6 +208,11 @@ const MessageBox: React.FC<MessageBoxProps> = ({
         </div>
       </div>
       
+      {typingUsers.length > 0 && (
+        <div className="text-xs text-[#b5bac1] mt-1 pl-1 select-none animate-pulse">
+          {getTypingText()}
+        </div>
+      )}
     </div>
   );
 };

@@ -8,11 +8,19 @@ import RegisterPage from './pages/RegisterPage';
 import GuildPage from './pages/GuildPage';
 import NotFoundPage from './pages/NotFoundPage';
 import OverviewPage from './pages/OverviewPage';
+import AdminDashboard from './pages/AdminDashboard';
 
 // Private Route Guard
 const PrivateRoute = ({ children }: { children: JSX.Element }) => {
   const token = useAppSelector((state) => state.auth.token);
   return token ? children : <Navigate to="/login" />;
+};
+
+// Admin Route Guard
+const AdminRoute = ({ children }: { children: JSX.Element }) => {
+  const token = useAppSelector((state) => state.auth.token);
+  const user = useAppSelector((state) => state.auth.user);
+  return token && user?.role === 'admin' ? children : <Navigate to="/channels/@me" replace />;
 };
 
 function App() {
@@ -41,6 +49,16 @@ function App() {
             <PrivateRoute>
               <GuildPage />
             </PrivateRoute>
+          } 
+        />
+        
+        {/* Admin Route */}
+        <Route 
+          path="/admin/*" 
+          element={
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
           } 
         />
 
