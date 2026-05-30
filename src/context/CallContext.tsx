@@ -1,9 +1,8 @@
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { Socket } from 'socket.io-client';
 import { useAppDispatch, useAppSelector } from '../hooks/useAppStore';
 import { setIncomingCall, clearIncomingCall, setCallStatus, endCall, startCall, leaveVoiceChannel } from '../store/slices/uiSlice';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+import ws from '../services/ws';
 
 interface VoiceParticipant {
   userId: string;
@@ -151,14 +150,26 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     if (!currentUser?.id) return;
 
-    const socket = io(`${API_URL}/video`, {
-      transports: ['websocket', 'polling'],
-      auth: { token: localStorage.getItem('token') }
-    });
+    console.log(`>>> [SOCKET VIDEO] Initializing video socket via multiplexing`);
+
+    const socket = ws.io.socket("/video");
     socketRef.current = socket;
 
-    socket.on('connect', () => {
+    socket.connect();
+
+    const registerUser = () => {
+      console.log(`>>> [SOCKET VIDEO] Registered successfully with userId: ${currentUser.id}`);
       socket.emit('register', currentUser.id);
+    };
+
+    if (socket.connected) {
+      registerUser();
+    }
+
+    socket.on('connect', registerUser);
+
+    socket.on('connect_error', (err) => {
+      console.error('>>> [SOCKET VIDEO] Connection error:', err.message);
     });
 
     socket.on('voice-signal', async (data: { from: string; fromSocketId: string; fromUsername?: string; channelId?: string; signal: any }) => {
@@ -267,7 +278,7 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
       dispatch(setCallStatus('connected'));
       
       let attempts = 0;
-      while (!localStreamRef.current && attempts < 20) {
+      while (!localStreamRef.current && attempts < 150) {
         await new Promise(resolve => setTimeout(resolve, 100));
         attempts++;
       }
@@ -318,7 +329,16 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     return () => { 
-      console.log(">>> [SOCKET] Disconnecting...");
+      console.log(">>> [SOCKET] Cleaning up video socket listeners...");
+      socket.off('connect');
+      socket.off('connect_error');
+      socket.off('voice-signal');
+      socket.off('incoming-call');
+      socket.off('call-accepted');
+      socket.off('call-rejected');
+      socket.off('call-ended');
+      socket.off('user-joined-voice');
+      socket.off('user-left-voice');
       socket.disconnect(); 
     };
   }, [currentUser?.id]);
@@ -463,7 +483,7 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const handleRoomOffer = async (fromSocketId: string, fromUserId: string, fromUsername: string, offer: RTCSessionDescriptionInit, channelId: string) => {
     // Đợi localStream
     let attempts = 0;
-    while (!localStreamRef.current && attempts < 50) {
+    while (!localStreamRef.current && attempts < 150) {
       await new Promise(resolve => setTimeout(resolve, 100));
       attempts++;
     }
@@ -509,11 +529,19 @@ export const CallProvider: React.FC<{ children: React.ReactNode }> = ({ children
     joiningRef.current = channelId;
     
     try {
-      await initMedia('voice');
+      setIsCameraOff(true); // Mặc định tắt camera khi vào phòng thoại
+      
+      const stream = await initMedia('voice');
+      if (stream) {
+        // Tắt track video ngay lập tức
+        stream.getVideoTracks().forEach(track => {
+          track.enabled = false;
+        });
+      }
       
       if (socketRef.current && currentUser) {
         socketRef.current.emit('join-voice', { channelId, userId: currentUser.id, username: currentUser.username });
-        setTimeout(() => broadcastMediaStatus(), 1500);
+        setTimeout(() => broadcastMediaStatus(undefined, isMuted, true), 1500);
       }
     } catch (err) {
       joiningRef.current = null;

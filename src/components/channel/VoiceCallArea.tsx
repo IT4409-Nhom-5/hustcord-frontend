@@ -19,35 +19,31 @@ const VoiceCallArea: React.FC = () => {
   const localVideoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    if (channelId && activeVoiceChannel?.id !== channelId) {
+    if (channelId) {
+      console.log(`>>> [VoiceCallArea] Joining voice channel: ${channelId}`);
       joinVoiceRoom(channelId);
     }
-  }, [channelId, activeVoiceChannel]);
-
-  const activeChannelRef = useRef(activeVoiceChannel?.id);
-  useEffect(() => { activeChannelRef.current = activeVoiceChannel?.id; }, [activeVoiceChannel?.id]);
-
-  useEffect(() => {
     return () => {
-      // Khi component unmount (thoát trang), nếu vẫn còn ở trong phòng thì tự động thoát
-      if (activeChannelRef.current) {
-        leaveVoiceRoom(activeChannelRef.current);
+      if (channelId) {
+        console.log(`>>> [VoiceCallArea] Leaving voice channel: ${channelId}`);
+        leaveVoiceRoom(channelId);
       }
     };
-  }, [leaveVoiceRoom]); // Chỉ chạy khi unmount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [channelId]);
 
   useEffect(() => {
-    if (localVideoRef.current && localStream) {
+    if (localVideoRef.current && localStream && !globalCameraOff) {
       localVideoRef.current.srcObject = localStream;
     }
-  }, [localStream]);
+  }, [localStream, globalCameraOff]);
 
   const { guildId: urlGuildId } = useParams();
   
   const handleLeaveVoice = () => {
     // Ưu tiên guildId từ URL vì nó luôn chính xác nhất
     const guildId = urlGuildId || activeVoiceChannel?.guildId;
-    const channelToLeave = activeVoiceChannel?.id || activeChannelRef.current;
+    const channelToLeave = activeVoiceChannel?.id || channelId;
 
     try {
       if (channelToLeave) {
