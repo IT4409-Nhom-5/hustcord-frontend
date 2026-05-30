@@ -9,12 +9,15 @@ import AppNavbar from '../components/navigation/AppNavbar';
 import ChatArea from '../components/channel/ChatArea';
 import VoiceCallArea from '../components/channel/VoiceCallArea';
 import MemberList from '../components/navigation/sidebar/MemberList';
+import { setSidebarOpen, setMemberListOpen } from '../store/slices/uiSlice';
 
 const GuildPage: React.FC = () => {
   const { guildId, channelId } = useParams();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { list: guilds, loaded } = useAppSelector((state) => state.guilds);
+  const isSidebarOpen = useAppSelector((state) => state.ui.isSidebarOpen);
+  const isMemberListOpen = useAppSelector((state) => state.ui.isMemberListOpen);
   
   const activeGuild = guilds.find(g => g.id === guildId);
 
@@ -56,25 +59,54 @@ const GuildPage: React.FC = () => {
   const isVoiceChannel = activeChannel?.type === 'VOICE';
 
   return (
-    <PageWrapper pageTitle="HustCord | Server" className="h-screen flex bg-[#313338] text-white">
-      {/* 1. Far Left: Server Icons */}
-      <Sidebar />
-      
-      {/* 2. Middle Left: Channel List */}
-      <ChannelSidebar />
+    <PageWrapper pageTitle="HustCord | Server" className="h-screen flex bg-[#313338] text-white relative">
+      {/* Combined sidebars container for mobile slide-out and desktop flow */}
+      <div className={`
+        flex shrink-0 z-40 transition-transform duration-300 ease-in-out
+        md:flex md:relative md:translate-x-0
+        fixed top-0 left-0 h-full
+        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      `}>
+        <Sidebar />
+        <ChannelSidebar />
+      </div>
+
+      {/* Backdrop overlay for left sidebar on mobile */}
+      {isSidebarOpen && (
+        <div 
+          onClick={() => dispatch(setSidebarOpen(false))}
+          className="fixed inset-0 bg-black/60 z-30 md:hidden"
+        />
+      )}
       
       {/* 3. Right: Main Content Area */}
       <div className="flex-1 flex flex-col bg-[#313338] min-w-0 min-h-0">
         <AppNavbar />
         
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex overflow-hidden relative">
           {/* Main Content: Chat or Voice Call */}
           {isVoiceChannel ? (
             <VoiceCallArea />
           ) : (
             <>
               <ChatArea />
-              <MemberList />
+              {/* Member list container for mobile slide-out and desktop flow */}
+              <div className={`
+                shrink-0 z-40 transition-transform duration-300 ease-in-out
+                md:block md:relative md:translate-x-0
+                fixed top-0 right-0 h-full
+                ${isMemberListOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}
+              `}>
+                <MemberList />
+              </div>
+
+              {/* Backdrop overlay for member list on mobile */}
+              {isMemberListOpen && (
+                <div 
+                  onClick={() => dispatch(setMemberListOpen(false))}
+                  className="fixed inset-0 bg-black/60 z-30 md:hidden"
+                />
+              )}
             </>
           )}
         </div>

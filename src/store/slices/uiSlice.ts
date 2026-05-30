@@ -11,7 +11,9 @@ const uiSlice = createSlice({
     activeModal: null as string | null,
     activeCall: null as { userId: string, type: 'voice' | 'video', status: 'calling' | 'connected', id?: string } | null,
     incomingCall: null as { from: string, type: 'voice' | 'video', callId: string } | null,
-    activeVoiceChannel: null as { id: string, name: string, guildId: string } | null
+    activeVoiceChannel: null as { id: string, name: string, guildId: string } | null,
+    isSidebarOpen: false,
+    isMemberListOpen: false
   },
   reducers: {
     openedModal: (state, action: PayloadAction<string>) => {
@@ -57,6 +59,18 @@ const uiSlice = createSlice({
     setGuild: (state, action: PayloadAction<any>) => {
       state.activeGuildId = action.payload?.id || null;
     },
+    toggleSidebar: (state) => {
+      state.isSidebarOpen = !state.isSidebarOpen;
+    },
+    setSidebarOpen: (state, action: PayloadAction<boolean>) => {
+      state.isSidebarOpen = action.payload;
+    },
+    toggleMemberList: (state) => {
+      state.isMemberListOpen = !state.isMemberListOpen;
+    },
+    setMemberListOpen: (state, action: PayloadAction<boolean>) => {
+      state.isMemberListOpen = action.payload;
+    },
   },
 });
 
@@ -73,6 +87,10 @@ export const {
   setCallStatus,
   joinVoiceChannel,
   leaveVoiceChannel,
-  setGuild
+  setGuild,
+  toggleSidebar,
+  setSidebarOpen,
+  toggleMemberList,
+  setMemberListOpen
 } = uiSlice.actions;
 export default uiSlice.reducer;

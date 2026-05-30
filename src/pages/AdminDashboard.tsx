@@ -12,6 +12,7 @@ interface DashboardStats {
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'overview' | 'users' | 'channels'>('overview');
+  const [isAdminSidebarOpen, setIsAdminSidebarOpen] = useState(false);
   
   // States
   const [stats, setStats] = useState<DashboardStats>({ users: 0, channels: 0, messages: 0 });
@@ -130,9 +131,15 @@ const AdminDashboard: React.FC = () => {
   });
 
   return (
-    <div className="min-h-screen bg-[#1e1f22] flex text-[#dbdee1] font-sans antialiased">
+    <div className="min-h-screen bg-[#1e1f22] flex text-[#dbdee1] font-sans antialiased relative">
       {/* Admin Sidebar */}
-      <aside className="w-64 bg-[#2b2d31] flex flex-col shrink-0 border-r border-[#1e1f22]">
+      <aside className={`
+        w-64 bg-[#2b2d31] flex flex-col shrink-0 border-r border-[#1e1f22]
+        transition-transform duration-300 ease-in-out z-40
+        md:flex md:relative md:translate-x-0
+        fixed top-0 left-0 h-full
+        ${isAdminSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      `}>
         {/* Header */}
         <div className="h-16 px-6 border-b border-[#1e1f22] flex items-center gap-2 font-bold text-white shadow-sm shrink-0">
           <span className="text-xl">🛡️</span>
@@ -142,7 +149,7 @@ const AdminDashboard: React.FC = () => {
         {/* Navigation Menu */}
         <nav className="flex-1 py-4 px-3 flex flex-col gap-1 overflow-y-auto">
           <button
-            onClick={() => setActiveTab('overview')}
+            onClick={() => { setActiveTab('overview'); setIsAdminSidebarOpen(false); }}
             className={`flex items-center px-3 py-2.5 rounded-md font-medium transition-all duration-200 ${
               activeTab === 'overview'
                 ? 'bg-[#404249] text-white'
@@ -154,7 +161,7 @@ const AdminDashboard: React.FC = () => {
           </button>
 
           <button
-            onClick={() => setActiveTab('users')}
+            onClick={() => { setActiveTab('users'); setIsAdminSidebarOpen(false); }}
             className={`flex items-center px-3 py-2.5 rounded-md font-medium transition-all duration-200 ${
               activeTab === 'users'
                 ? 'bg-[#404249] text-white'
@@ -166,7 +173,7 @@ const AdminDashboard: React.FC = () => {
           </button>
 
           <button
-            onClick={() => setActiveTab('channels')}
+            onClick={() => { setActiveTab('channels'); setIsAdminSidebarOpen(false); }}
             className={`flex items-center px-3 py-2.5 rounded-md font-medium transition-all duration-200 ${
               activeTab === 'channels'
                 ? 'bg-[#404249] text-white'
@@ -189,19 +196,39 @@ const AdminDashboard: React.FC = () => {
         </div>
       </aside>
 
+      {/* Backdrop for Admin Sidebar on Mobile */}
+      {isAdminSidebarOpen && (
+        <div 
+          onClick={() => setIsAdminSidebarOpen(false)}
+          className="fixed inset-0 bg-black/60 z-30 md:hidden"
+        />
+      )}
+
       {/* Main Content Area */}
       <main className="flex-1 bg-[#313338] flex flex-col min-w-0">
         {/* Navbar */}
-        <header className="h-16 px-8 border-b border-[#1e1f22] flex items-center justify-between shadow-sm shrink-0">
-          <h1 className="text-xl font-bold text-white uppercase tracking-wide">
-            {activeTab === 'overview' && 'System Overview'}
-            {activeTab === 'users' && 'Manage Registered Users'}
-            {activeTab === 'channels' && 'Manage Server Channels'}
-          </h1>
+        <header className="h-16 px-4 md:px-8 border-b border-[#1e1f22] flex items-center justify-between shadow-sm shrink-0 gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            {/* Toggle Admin Sidebar Button for Mobile */}
+            <button 
+              onClick={() => setIsAdminSidebarOpen(!isAdminSidebarOpen)}
+              className="md:hidden p-1 text-[#949ba4] hover:text-white transition-colors focus:outline-none shrink-0"
+              title="Toggle Menu"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            <h1 className="text-base md:text-xl font-bold text-white uppercase tracking-wide truncate">
+              {activeTab === 'overview' && 'System Overview'}
+              {activeTab === 'users' && 'Manage Registered Users'}
+              {activeTab === 'channels' && 'Manage Server Channels'}
+            </h1>
+          </div>
           <button 
             onClick={loadData}
             disabled={loading}
-            className="p-2 hover:bg-[#3f4147] rounded-full transition-colors text-[#949ba4] hover:text-white"
+            className="p-2 hover:bg-[#3f4147] rounded-full transition-colors text-[#949ba4] hover:text-white shrink-0"
             title="Refresh Data"
           >
             🔄
@@ -209,7 +236,7 @@ const AdminDashboard: React.FC = () => {
         </header>
 
         {/* Page Content */}
-        <div className="flex-1 p-8 overflow-y-auto custom-scrollbar">
+        <div className="flex-1 p-4 md:p-8 overflow-y-auto custom-scrollbar">
           {error && (
             <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 text-red-400 rounded-lg text-sm">
               ⚠️ {error}
@@ -253,18 +280,43 @@ const AdminDashboard: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* System Info Box */}
-                  <div className="p-6 bg-[#2b2d31]/40 rounded-xl border border-[#1e1f22] space-y-4">
-                    <h3 className="text-lg font-bold text-white">System Information</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-[#949ba4]">
-                      <div>
-                        <p>Database Dialect: <span className="text-white font-semibold">PostgreSQL</span></p>
-                        <p className="mt-1">ORM/Driver: <span className="text-white font-semibold">Sequelize (TypeScript)</span></p>
-                      </div>
-                      <div>
-                        <p>Storage Provider: <span className="text-white font-semibold">Supabase Cloud DB</span></p>
-                        <p className="mt-1">Auth Type: <span className="text-white font-semibold">Self-Hosted JWT Session</span></p>
-                      </div>
+                  {/* Dashboard Widgets */}
+                  <div className="p-6 bg-[#2b2d31] rounded-xl border border-[#1e1f22] space-y-4 shadow-md">
+                    <div className="flex justify-between items-center">
+                      <h3 className="text-lg font-bold text-white">Recent Registrations</h3>
+                      <button 
+                        onClick={() => setActiveTab('users')} 
+                        className="text-sm text-[#5865f2] hover:underline font-medium"
+                      >
+                        View All
+                      </button>
+                    </div>
+                    <div className="divide-y divide-[#1e1f22] text-sm">
+                      {users.slice(0, 5).map((u) => (
+                        <div key={u.id} className="py-3 flex items-center justify-between">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <img
+                              src={u.avatar || 'https://res.cloudinary.com/dtzs4c2uv/image/upload/v1666326774/noavatar_rxbrbk.png'}
+                              alt="avatar"
+                              className="w-8 h-8 rounded-full object-cover bg-gray-600 shrink-0"
+                            />
+                            <div className="min-w-0">
+                              <p className="font-bold text-white truncate">{u.username}</p>
+                              <p className="text-xs text-[#949ba4] truncate">{u.email}</p>
+                            </div>
+                          </div>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
+                            u.role === 'admin' 
+                              ? 'bg-[#23a55a]/10 text-[#23a55a]' 
+                              : 'bg-[#949ba4]/10 text-[#949ba4]'
+                          }`}>
+                            {u.role === 'admin' ? 'ADMIN' : 'USER'}
+                          </span>
+                        </div>
+                      ))}
+                      {users.length === 0 && (
+                        <p className="py-4 text-[#949ba4] italic text-center">No recent registrations.</p>
+                      )}
                     </div>
                   </div>
                 </div>
