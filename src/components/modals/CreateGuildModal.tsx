@@ -1,78 +1,118 @@
 import React, { useState } from 'react';
+import { useAppDispatch, useAppSelector } from '../../hooks/useAppStore';
 import Modal from './Modal';
-// import { useAppDispatch } from '../../hooks/useAppStore';
-// import { createGuild } from '../../store/slices/guildSlice'; // TODO: Cần tạo thunk này
+import { created } from '../../store/slices/guildSlice';
+import { closedModal } from '../../store/slices/uiSlice';
+import type { Guild } from '../../types';
+import api from '../../services/api';
 
-interface CreateGuildModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
+const CreateGuildModal: React.FC = () => {
+  const dispatch = useAppDispatch();
+  const currentUser = useAppSelector((state) => state.auth.user);
+  const [name, setName] = useState('');
+  const [loading, setLoading] = useState(false);
 
-const CreateGuildModal: React.FC<CreateGuildModalProps> = ({ isOpen, onClose }) => {
-  const [guildName, setGuildName] = useState('');
-  const [iconUrl, setIconUrl] = useState('');
-  // const dispatch = useAppDispatch();
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!guildName.trim()) return;
+    if (!name.trim() || !currentUser) return;
 
-    // TODO: Dispatch action tạo Server mới (Gọi API qua Redux Thunk)
-    // dispatch(createGuild({ name: guildName, icon: iconUrl }));
-    console.log('Tạo server mới:', { name: guildName, icon: iconUrl });
+    setLoading(true);
+    try {
+      const guildId = crypto.randomUUID(); 
 
-    setGuildName('');
-    setIconUrl('');
-    onClose();
+      const response = await api.post('/channels', {
+        name: name.trim(),
+        description: `Welcome to ${name.trim()}!`,
+        participants: [currentUser.id],
+        admins: [currentUser.id],
+        image: '',
+        guildId: guildId
+      });
+
+      if (response.data.channel) {
+        const backendChannel = response.data.channel;
+        
+        const newGuild: Guild = {
+          id: guildId,
+          name: name.trim(),
+          ownerId: currentUser.id,
+          createdAt: new Date().toISOString(),
+          channels: [
+            { 
+              id: backendChannel.id, 
+              name: 'general', 
+              type: 'TEXT', 
+              guildId: guildId, 
+              createdAt: backendChannel.createdAt 
+            }
+          ],
+          members: [currentUser]
+        };
+
+        dispatch(created({ guild: newGuild }));
+        
+        // Phát tín hiệu đồng bộ Guild qua Socket cho bạn bè
+        const ws = (await import('../../services/ws')).default;
+        ws.emit('sync-guild', newGuild);
+
+        dispatch(closedModal());
+      }
+    } catch (error: any) {
+      console.error("Failed to create guild/channel in backend:", error);
+      const errorMsg = error.response?.data?.message || error.message || "Unknown error";
+      alert(`Failed to create server: ${errorMsg}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Tạo máy chủ của bạn">
-      <div className="mb-4 text-center text-sm text-[#b5bac1]">
-        Máy chủ là nơi bạn và những người bạn của mình gặp gỡ. Hãy tạo một máy chủ và bắt đầu trò chuyện.
+    <Modal title="Customize your server">
+      <div className="text-center mb-6 px-4">
+        <p className="text-[#b5bac1] text-sm">
+          Give your new server a personality with a name and an icon. You can always change it later.
+        </p>
       </div>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="mb-2 block text-xs font-bold uppercase text-[#8e9297]">
-            Tên máy chủ <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            value={guildName}
-            onChange={(e) => setGuildName(e.target.value)}
-            placeholder="Máy chủ của tôi"
-            className="w-full rounded bg-[#1e1f22] px-3 py-2.5 text-white outline-none focus:ring-1 focus:ring-[#5865F2]"
-            required
-          />
+      
+      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <div className="flex justify-center mb-4">
+          <div className="w-20 h-20 rounded-full border-2 border-dashed border-[#4e5058] flex items-center justify-center text-[#b5bac1] hover:border-[#5865f2] hover:text-[#5865f2] cursor-pointer transition-colors group">
+            <div className="flex flex-col items-center">
+              <svg className="w-6 h-6 mb-1" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2Zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8Zm-1-13h2v4h4v2h-4v4h-2v-4H7v-2h4V7Z"/></svg>
+              <span className="text-[10px] font-bold uppercase">Upload</span>
+            </div>
+          </div>
         </div>
 
         <div>
-          <label className="mb-2 block text-xs font-bold uppercase text-[#8e9297]">
-            Đường dẫn ảnh đại diện (Tùy chọn)
-          </label>
-          <input
-            type="url"
-            value={iconUrl}
-            onChange={(e) => setIconUrl(e.target.value)}
-            placeholder="https://example.com/icon.png"
-            className="w-full rounded bg-[#1e1f22] px-3 py-2.5 text-white outline-none focus:ring-1 focus:ring-[#5865F2]"
+          <label className="block text-xs font-bold text-[#b5bac1] uppercase mb-2">Server Name</label>
+          <input 
+            type="text" 
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="My Cool Server"
+            className="w-full bg-[#1e1f22] text-[#dbdee1] p-2 rounded outline-none focus:ring-1 focus:ring-[#5865f2]"
+            autoFocus
           />
+          <p className="text-[11px] text-[#80848e] mt-2">
+            By creating a server, you agree to HustCord's <span className="text-[#00a8fc] cursor-pointer hover:underline">Community Guidelines</span>.
+          </p>
         </div>
 
-        <div className="mt-6 flex justify-end gap-3 border-t border-[#1e1f22] pt-4">
-          <button
-            type="button"
-            onClick={onClose}
-            className="px-4 py-2 text-sm font-medium text-white transition hover:underline"
+        <div className="bg-[#2b2d31] -mx-4 p-4 mt-2 flex justify-between items-center">
+          <button 
+            type="button" 
+            onClick={() => dispatch(closedModal())}
+            className="text-white text-sm font-medium hover:underline px-4 py-2"
           >
-            Hủy
+            Back
           </button>
-          <button
+          <button 
             type="submit"
-            disabled={!guildName.trim()}
-            className="rounded bg-[#5865F2] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#4752c4] disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={loading}
+            className={`bg-[#5865f2] hover:bg-[#4752c4] text-white text-sm font-medium px-8 py-2 rounded transition-colors shadow-lg ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            Tạo
+            {loading ? "Creating..." : "Create"}
           </button>
         </div>
       </form>
