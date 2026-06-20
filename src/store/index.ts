@@ -23,6 +23,15 @@ const rootReducer = combineReducers({
   channels: channelReducer,
   users: userReducer,
   meta: metaReducer,
+import { configureStore } from '@reduxjs/toolkit';
+import authReducer from './slices/authSlice';
+import guildReducer from './slices/guildSlice';
+
+export const store = configureStore({
+  reducer: {
+    auth: authReducer,
+    guild: guildReducer,
+  },
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
